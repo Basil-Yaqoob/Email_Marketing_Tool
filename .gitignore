@@ -246,3 +246,6 @@ exports/
 # Local infra state
 postgres_data/
 redis_data/
+
+# Claude Code local tool state (per-machine permission cache), not project config
+.claude/

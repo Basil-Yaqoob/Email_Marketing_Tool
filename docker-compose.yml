@@ -7,7 +7,14 @@ services:
       POSTGRES_PASSWORD: emt_dev_password
       POSTGRES_DB: email_marketing_tool
     ports:
-      - "5432:5432"
+      # Host port 5433, not 5432: a machine with its own local Postgres
+      # already bound to 5432 will silently proxy connections to *that*
+      # instance instead of this container, producing a confusing auth
+      # failure against a database that doesn't exist there. The container's
+      # internal port stays 5432 — only the host-side mapping changes, so
+      # `web`/`worker` (which talk to `postgres:5432` on the compose network)
+      # are unaffected.
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
