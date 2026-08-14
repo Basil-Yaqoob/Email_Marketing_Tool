@@ -1,0 +1,59 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: emt
+      POSTGRES_PASSWORD: emt_dev_password
+      POSTGRES_DB: email_marketing_tool
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U emt -d email_marketing_tool"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Stubs — get real commands in later sessions (API: Session 20, worker: Session 03+).
+  web:
+    build: .
+    command: ["echo", "web service not yet implemented — see Session 20"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    profiles: ["app"]
+
+  worker:
+    build: .
+    command: ["echo", "worker service not yet implemented — see Session 03"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    profiles: ["app"]
+
+volumes:
+  postgres_data:
+  redis_data:
