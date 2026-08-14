@@ -216,3 +216,33 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---------------------------------------------------------------------------
+# Email Marketing Tool — project specific
+# ---------------------------------------------------------------------------
+
+# Planning docs: local working notes, not shipped
+doc/
+
+# Secrets — never commit. .env.example IS committed.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+token.json
+
+# Scraped data, exports, caches
+data/
+exports/
+*.csv
+*.xlsx
+!tests/fixtures/**/*.csv
+!tests/fixtures/**/*.xlsx
+.http_cache/
+.playwright_cache/
+
+# Local infra state
+postgres_data/
+redis_data/
