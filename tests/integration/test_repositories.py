@@ -270,6 +270,83 @@ async def test_domain_pattern_conflict_keeps_higher_count(db_session: AsyncSessi
 
 
 # --------------------------------------------------------------------------
+# Session 09: pattern learning's read side, and weighted conflict
+# resolution (a reply outweighs a website scrape).
+# --------------------------------------------------------------------------
+
+
+async def test_domain_pattern_get_returns_none_when_unknown(db_session: AsyncSession) -> None:
+    repo = DomainPatternRepository(db_session)
+    domain = f"{uuid.uuid4().hex[:8]}.example.com"
+    assert await repo.get(domain) is None
+
+
+async def test_learning_increments_confirmed_count(db_session: AsyncSession) -> None:
+    repo = DomainPatternRepository(db_session)
+    domain = f"{uuid.uuid4().hex[:8]}.example.com"
+
+    first = await repo.learn(domain, "{first}.{last}", weight=1)
+    assert first.confirmed_count == 1
+
+    second = await repo.learn(domain, "{first}.{last}", weight=1)
+    assert second.confirmed_count == 2
+
+    fetched = await repo.get(domain)
+    assert fetched is not None
+    assert fetched.confirmed_count == 2
+
+
+async def test_conflicting_pattern_keeps_higher_count(db_session: AsyncSession) -> None:
+    """Session 09's weight-aware version of the Session 02 test above --
+    a tie (equal weight) still keeps the incumbent, not the newer one.
+    """
+    repo = DomainPatternRepository(db_session)
+    domain = f"{uuid.uuid4().hex[:8]}.example.com"
+
+    await repo.learn(domain, "{first}.{last}", weight=2)
+    conflicting = await repo.learn(domain, "{f}{last}", weight=2)  # tie -> incumbent wins
+
+    assert conflicting.pattern == "{first}.{last}"
+    assert conflicting.confirmed_count == 2
+
+
+async def test_pattern_is_global_across_campaigns(db_session: AsyncSession) -> None:
+    """Learning while working a lead in one campaign is visible reading
+    the same domain from an unrelated campaign -- domain_patterns carries
+    no campaign_id, by design (see the model's docstring).
+    """
+    repo = DomainPatternRepository(db_session)
+    domain = f"{uuid.uuid4().hex[:8]}.example.com"
+
+    await repo.learn(domain, "{first}.{last}", weight=1)  # "campaign A"
+    seen_from_b = await repo.get(domain)  # "campaign B", same repository, same table
+
+    assert seen_from_b is not None
+    assert seen_from_b.pattern == "{first}.{last}"
+
+
+async def test_reply_confirms_pattern_with_highest_weight(db_session: AsyncSession) -> None:
+    """A reply actually received from an address (weight 3) can correct a
+    pattern a weaker source (a website scrape, weight 1) got wrong -- the
+    only way a poisoned domain recovers on its own.
+    """
+    from app.resolvers.email.learning import SOURCE_WEIGHTS, ConfirmationSource
+
+    repo = DomainPatternRepository(db_session)
+    domain = f"{uuid.uuid4().hex[:8]}.example.com"
+
+    await repo.learn(
+        domain, "{first}", weight=SOURCE_WEIGHTS[ConfirmationSource.WEBSITE]
+    )  # a wrong guess from a website scrape
+    corrected = await repo.learn(
+        domain, "{first}.{last}", weight=SOURCE_WEIGHTS[ConfirmationSource.REPLY]
+    )  # someone actually replied from this address
+
+    assert corrected.pattern == "{first}.{last}"
+    assert corrected.confirmed_count == SOURCE_WEIGHTS[ConfirmationSource.REPLY]
+
+
+# --------------------------------------------------------------------------
 # companies: country_code is NOT NULL — the compliance guard.
 # --------------------------------------------------------------------------
 

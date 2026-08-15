@@ -19,38 +19,57 @@ class DomainPatternRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def learn(self, domain: str, pattern: str) -> DomainPattern:
-        """Upsert the confirmed pattern for a domain.
+    async def get(self, domain: str) -> DomainPattern | None:
+        """The learned pattern for a domain, or None if none is known.
 
-        - No row yet: insert with confirmed_count=1.
-        - Row exists with the same pattern: increment confirmed_count.
-        - Row exists with a *different* pattern (conflict): keep whichever
-          has the higher confirmed_count. A single new observation carries
-          an implicit count of 1, so it only displaces an established
-          pattern once it has itself been confirmed at least as many times
-          — resolved deterministically, never by last-write-wins (CLAUDE.md
-          rule 2.1: no silent overwrite of a fact we have evidence for).
+        Deliberately not filtered by campaign — that is the whole point of
+        this table (see the model's docstring).
         """
-        existing = await self._session.scalar(
+        result: DomainPattern | None = await self._session.scalar(
             select(DomainPattern).where(DomainPattern.domain == domain)
         )
+        return result
+
+    async def learn(self, domain: str, pattern: str, *, weight: int = 1) -> DomainPattern:
+        """Upsert the confirmed pattern for a domain.
+
+        - No row yet: insert with confirmed_count = weight.
+        - Row exists with the same pattern: add weight to confirmed_count.
+        - Row exists with a *different* pattern (conflict): keep whichever
+          carries more evidence. Resolved deterministically by comparing
+          counts, never by last-write-wins (CLAUDE.md rule 2.1: no silent
+          overwrite of a fact we have evidence for).
+
+        `weight` grades confirmation strength (see
+        app/resolvers/email/learning.py:SOURCE_WEIGHTS). A reply actually
+        received from an address is proof and carries weight 3, so it can
+        correct a pattern that a weaker source got wrong — which is the
+        only way a poisoned domain ever recovers on its own.
+        """
+        existing = await self.get(domain)
         now = datetime.now(UTC)
 
         if existing is None:
             row = DomainPattern(
-                domain=domain, pattern=pattern, confirmed_count=1, last_confirmed_at=now
+                domain=domain, pattern=pattern, confirmed_count=weight, last_confirmed_at=now
             )
             self._session.add(row)
             await self._session.flush()
             return row
 
         if existing.pattern == pattern:
-            existing.confirmed_count += 1
+            existing.confirmed_count += weight
             existing.last_confirmed_at = now
             await self._session.flush()
             return existing
 
-        # Conflict. existing.confirmed_count is always >= 1, so it never
-        # loses to a single new observation — see docstring.
+        # Conflict: the new observation only displaces an established
+        # pattern when it carries strictly more evidence. Ties keep the
+        # incumbent, so a single weak observation can never flip a domain.
+        if weight > existing.confirmed_count:
+            existing.pattern = pattern
+            existing.confirmed_count = weight
+            existing.last_confirmed_at = now
+
         await self._session.flush()
         return existing
