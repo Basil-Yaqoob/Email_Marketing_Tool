@@ -1,0 +1,17 @@
+{
+  "places": [
+    {
+      "id": "ChIJ_lakeside_dental_002",
+      "displayName": {"text": "Lakeside Family Dental", "languageCode": "en"},
+      "formattedAddress": "789 Lake Dr, Austin, TX 78703, USA",
+      "addressComponents": [
+        {"longText": "United States", "shortText": "US", "types": ["country", "political"]}
+      ],
+      "location": {"latitude": 30.29, "longitude": -97.77},
+      "websiteUri": "https://lakesidedental.example.com",
+      "internationalPhoneNumber": "+1 512-555-0201",
+      "rating": 4.2,
+      "userRatingCount": 54
+    }
+  ]
+}

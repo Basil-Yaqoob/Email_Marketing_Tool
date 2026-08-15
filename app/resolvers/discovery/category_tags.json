@@ -1,0 +1,17 @@
+{
+  "dental clinic": [
+    {"amenity": "dentist"},
+    {"healthcare": "dentist"}
+  ],
+  "medical clinic": [
+    {"amenity": "clinic"},
+    {"amenity": "doctors"}
+  ],
+  "veterinary": [
+    {"amenity": "veterinary"}
+  ],
+  "med spa": [
+    {"shop": "beauty"},
+    {"leisure": "spa"}
+  ]
+}

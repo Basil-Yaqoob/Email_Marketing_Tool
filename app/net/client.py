@@ -10,6 +10,11 @@ Behaviour, in order, for every GET:
   7. cache the response
   8. any other 4xx does not retry -- raises immediately
 
+post() shares steps 3-6 with get() (rate limiting, retries, backoff) but
+skips robots.txt (it's an API call, not a page fetch) and the cache (a
+metered search result silently replayed from disk would defeat a budget
+guard's purpose) — see Session 05's Google Places resolver.
+
 Identify yourself honestly in the User-Agent. A contactable UA gets you
 unblocked when someone notices unusual traffic; a fake Chrome string gets
 you banned.
@@ -19,10 +24,10 @@ from __future__ import annotations
 
 import asyncio
 import random
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from types import TracebackType
-from typing import Self
+from typing import Any, Self
 from urllib.parse import urlsplit
 
 import httpx
@@ -137,11 +142,45 @@ class HttpClient:
         )
         return response
 
-    async def _fetch_with_retries(self, url: str) -> Response:
+    async def post(
+        self,
+        url: str,
+        *,
+        json: Mapping[str, Any],
+        headers: Mapping[str, str] | None = None,
+    ) -> Response:
+        """POST with the same retry/backoff and per-host rate limiting as
+        get(), for APIs that require a JSON request body (e.g. Google
+        Places' searchText) rather than query parameters.
+
+        Never cached — a metered search result being silently replayed
+        from disk would defeat the budget guard's whole purpose (the
+        caller tracks and pays for every call it actually makes) — and
+        never subject to robots.txt, since this is an API call, not a
+        page fetch.
+        """
+        host = urlsplit(url).netloc
+        async with self._limiter.acquire(host):
+            return await self._fetch_with_retries(
+                url, method="POST", json_body=json, extra_headers=headers
+            )
+
+    async def _fetch_with_retries(
+        self,
+        url: str,
+        *,
+        method: str = "GET",
+        json_body: Mapping[str, Any] | None = None,
+        extra_headers: Mapping[str, str] | None = None,
+    ) -> Response:
+        headers: dict[str, str] = {"User-Agent": self._user_agent}
+        if extra_headers:
+            headers.update(extra_headers)
+
         for attempt in range(1, MAX_ATTEMPTS + 1):
             is_last = attempt == MAX_ATTEMPTS
             try:
-                raw = await self._client.get(url, headers={"User-Agent": self._user_agent})
+                raw = await self._client.request(method, url, headers=headers, json=json_body)
             except httpx.TimeoutException as exc:
                 if is_last:
                     raise UpstreamError(

@@ -1,0 +1,44 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62",
+  "elements": [
+    {
+      "type": "node",
+      "id": 100001,
+      "lat": 30.2672,
+      "lon": -97.7431,
+      "tags": {
+        "amenity": "dentist",
+        "name": "Northgate Dental",
+        "website": "northgatedental.com",
+        "phone": "+1-512-555-0100",
+        "addr:housenumber": "123",
+        "addr:street": "Main Street",
+        "addr:city": "Austin",
+        "addr:postcode": "78701",
+        "addr:country": "US"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100002,
+      "lat": 30.27,
+      "lon": -97.745,
+      "tags": {
+        "amenity": "dentist",
+        "name": "Riverside Dental Care",
+        "contact:website": "riversidedentalcare.com",
+        "contact:phone": "+1-512-555-0142"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100003,
+      "lat": 30.268,
+      "lon": -97.744,
+      "tags": {
+        "amenity": "dentist"
+      }
+    }
+  ]
+}

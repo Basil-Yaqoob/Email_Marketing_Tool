@@ -1,0 +1,15 @@
+[
+  {
+    "place_id": 12345,
+    "lat": "30.267153",
+    "lon": "-97.7430608",
+    "display_name": "Austin, Travis County, Texas, United States",
+    "address": {
+      "city": "Austin",
+      "county": "Travis County",
+      "state": "Texas",
+      "country": "United States",
+      "country_code": "us"
+    }
+  }
+]
