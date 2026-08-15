@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<ownershipDocument>
+  <schemaVersion>X0508</schemaVersion>
+  <documentType>4</documentType>
+  <issuer>
+    <issuerCik>0000320193</issuerCik>
+    <issuerName>Apple Inc.</issuerName>
+  </issuer>
+  <reportingOwner>
+    <reportingOwnerId>
+      <rptOwnerCik>0001234567</rptOwnerCik>
+      <rptOwnerName>Doe, Jane</rptOwnerName>
+    </reportingOwnerId>
+    <reportingOwnerRelationship>
+      <isDirector>1</isDirector>
+      <isOfficer>1</isOfficer>
+      <isTenPercentOwner>0</isTenPercentOwner>
+      <officerTitle>Chief Executive Officer</officerTitle>
+    </reportingOwnerRelationship>
+  </reportingOwner>
+  <reportingOwner>
+    <reportingOwnerId>
+      <rptOwnerCik>0007654321</rptOwnerCik>
+      <rptOwnerName>Carter, Michael</rptOwnerName>
+    </reportingOwnerId>
+    <reportingOwnerRelationship>
+      <isDirector>1</isDirector>
+      <isOfficer>0</isOfficer>
+      <isTenPercentOwner>0</isTenPercentOwner>
+    </reportingOwnerRelationship>
+  </reportingOwner>
+  <reportingOwner>
+    <reportingOwnerId>
+      <rptOwnerCik>0009999999</rptOwnerCik>
+      <rptOwnerName>Big Fund Investors LP</rptOwnerName>
+    </reportingOwnerId>
+    <reportingOwnerRelationship>
+      <isDirector>0</isDirector>
+      <isOfficer>0</isOfficer>
+      <isTenPercentOwner>1</isTenPercentOwner>
+    </reportingOwnerRelationship>
+  </reportingOwner>
+</ownershipDocument>

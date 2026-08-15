@@ -19,7 +19,9 @@ from app.resolvers.discovery.base import CompanyCandidate
 PROXIMITY_METERS = 200.0
 _EARTH_RADIUS_M = 6_371_000.0
 
-_LEGAL_SUFFIXES = frozenset({"ltd", "llc", "gmbh", "inc", "pllc", "pc", "co", "corp", "plc", "llp"})
+_LEGAL_SUFFIXES = frozenset(
+    {"ltd", "limited", "llc", "gmbh", "inc", "pllc", "pc", "co", "corp", "plc", "llp"}
+)
 _PUNCT_RE = re.compile(r"[^\w\s]")
 _WHITESPACE_RE = re.compile(r"\s+")
 

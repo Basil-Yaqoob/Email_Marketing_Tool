@@ -1,0 +1,15 @@
+{
+  "results": {
+    "companies": [
+      {
+        "company": {
+          "name": "ACME WIDGETS PTY LTD",
+          "company_number": "ACN123456789",
+          "jurisdiction_code": "au",
+          "company_type": "Proprietary Limited Company",
+          "registered_address": {"postal_code": "2000"}
+        }
+      }
+    ]
+  }
+}

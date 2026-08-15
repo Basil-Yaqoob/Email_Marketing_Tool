@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "name": "O'BRIEN, Sean",
+      "officer_role": "director",
+      "appointed_on": "2018-04-01",
+      "occupation": "Company Director"
+    },
+    {
+      "name": "PATEL, Anita Kaur",
+      "officer_role": "director",
+      "appointed_on": "2019-09-12",
+      "occupation": "Dentist"
+    },
+    {
+      "name": "WRIGHT, Susan",
+      "officer_role": "secretary",
+      "appointed_on": "2018-04-01"
+    },
+    {
+      "name": "NOMINEE DIRECTOR SERVICES LIMITED",
+      "officer_role": "corporate-director",
+      "appointed_on": "2018-04-01"
+    },
+    {
+      "name": "DAVIES, David",
+      "officer_role": "nominee-director",
+      "appointed_on": "2018-04-01",
+      "occupation": "Company Formation Agent"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "name": "SMITH, Jane Elizabeth",
+      "officer_role": "director",
+      "appointed_on": "2015-03-01",
+      "resigned_on": null,
+      "nationality": "British",
+      "occupation": "Dentist"
+    },
+    {
+      "name": "JONES, Robert",
+      "officer_role": "director",
+      "appointed_on": "2010-01-15",
+      "resigned_on": "2022-06-30",
+      "nationality": "British",
+      "occupation": "Dentist"
+    }
+  ]
+}

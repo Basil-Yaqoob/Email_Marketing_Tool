@@ -109,7 +109,13 @@ class HttpClient:
         use_cache: bool = True,
         respect_robots: bool = True,
         ttl_seconds: float | None = None,
+        extra_headers: Mapping[str, str] | None = None,
     ) -> Response:
+        """extra_headers exists for Session 07's registry APIs (Companies
+        House's Basic Auth, EDGAR's required contact User-Agent) — plain
+        page fetches never need it, so it defaults to None and every
+        existing caller is unaffected.
+        """
         if respect_robots:
             allowed = await self._robots.allowed(url)
             if not allowed:
@@ -128,7 +134,7 @@ class HttpClient:
 
         host = urlsplit(url).netloc
         async with self._limiter.acquire(host):
-            response = await self._fetch_with_retries(url)
+            response = await self._fetch_with_retries(url, extra_headers=extra_headers)
 
         # Always write back, even when use_cache=False: a caller bypassing
         # the cache to force a fresh fetch still wants later calls to see

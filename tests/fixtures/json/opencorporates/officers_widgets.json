@@ -1,0 +1,22 @@
+{
+  "results": {
+    "officers": [
+      {
+        "officer": {
+          "name": "Jane Smith",
+          "position": "Director",
+          "start_date": "2015-01-01",
+          "end_date": null
+        }
+      },
+      {
+        "officer": {
+          "name": "John Doe",
+          "position": "Company Secretary",
+          "start_date": "2015-01-01",
+          "end_date": "2020-01-01"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "company_number": "09876543",
+      "title": "NORTHGATE DENTAL CARE LIMITED",
+      "company_type": "ltd",
+      "company_status": "active",
+      "address_snippet": "12 High Street, Northgate, London, EC1A 1BB"
+    },
+    {
+      "company_number": "01112223",
+      "title": "NORTHGATE PROPERTY HOLDINGS LIMITED",
+      "company_type": "ltd",
+      "company_status": "active",
+      "address_snippet": "The Old Mill, Northgate, Leeds, LS1 4DY"
+    }
+  ]
+}
