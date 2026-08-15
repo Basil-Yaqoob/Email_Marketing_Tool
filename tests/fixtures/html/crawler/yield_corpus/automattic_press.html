@@ -1,0 +1,934 @@
+<!-- FIXTURE PROVENANCE: fetched from https://automattic.com/press/ on 2026-08-15. Real page, saved verbatim (inline script/style blobs over 500 chars trimmed for repo size unless they contain '@' or 'mailto'; JSON-LD always kept in full). -->
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name='robots' content='max-image-preview:large' />
+<meta name="google-site-verification" content="XECAgs1qhOf9tfH5snpZFPxF4nDR6Jmy58IraJfFVo0" />
+<style id="a8c-analytics-dnsd-hide">html:not(.a8c-dnsd-ready) [data-is-ccpa-dnsd-trigger]{display:none!important}html:not(.a8c-dnsd-ready) [title="data-is-ccpa-dnsd"]{display:none!important}html:not(.a8c-dnsd-ready) .ccpa-dnsd{display:none!important}html:not(.a8c-dnsd-ready) .is-ccpa-dnsd-trigger{display:none!important}html:not(.a8c-dnsd-ready) .ak-is-ccpa-dnsd-trigger{display:none!important}</style>		<script type="text/javascript">
+			( function() {
+				'use strict';
+
+				document.addEventListener( 'a8c-analytics:loaded-is-ccpa', function( event ) {
+					var isCCPA = false;
+
+					try {
+						isCCPA = JSON.parse( event.detail ).isCCPA;
+					} catch ( e ) {}
+
+					if ( isCCPA && window.a8cAnalytics && window.a8cAnalytics.dnsd
+						&& 'function' === typeof window.a8cAnalytics.dnsd.show ) {
+						document.documentElement.classList.add( 'a8c-dnsd-ready' );
+					}
+				} );
+			} )();
+		</script>
+		
+<!-- Async WordPress.com Remote Login -->
+<script id="wpcom_remote_login_js">
+var wpcom_remote_login_extra_auth = '';
+function wpcom_remote_login_remove_dom_node_id( element_id ) {
+	var dom_node = document.getElementById( element_id );
+	if ( dom_node ) { dom_node.parentNode.removeChild( dom_node ); }
+}
+function wpcom_remote_login_remove_dom_node_classes( class_name ) {
+	var dom_nodes = document.querySelectorAll( '.' + class_name );
+	for ( var i = 0; i < dom_nodes.length; i++ ) {
+		dom_nodes[ i ].parentNode.removeChild( dom_nodes[ i ] );
+	}
+}
+function wpcom_remote_login_final_cleanup() {
+	wpcom_remote_login_remove_dom_node_classes( "wpcom_remote_login_msg" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_validate" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_js" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_iframe" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_styles" );
+}
+
+// Watch for messages back from the remote login
+window.addEventListener( "message", function( e ) {
+	if ( e.origin === "https://r-login.wordpress.com" ) {
+		var data = {};
+		try {
+			data = JSON.parse( e.data );
+		} catch( e ) {
+			wpcom_remote_login_final_cleanup();
+			return;
+		}
+
+		if ( data.msg === 'LOGIN' ) {
+			// Clean up the login check iframe
+			wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+
+			var id_regex = new RegExp( /^[0-9]+$/ );
+			var token_regex = new RegExp( /^.*|.*|.*$/ );
+			if (
+				token_regex.test( data.token )
+				&& id_regex.test( data.wpcomid )
+			) {
+				// We have everything we need to ask for a login
+				var script = document.createElement( "script" );
+				script.setAttribute( "id", "wpcom_remote_login_validate" );
+				script.src = '/remote-login.php?wpcom_remote_login=validate'
+					+ '&wpcomid=' + data.wpcomid
+					+ '&token=' + encodeURIComponent( data.token )
+					+ '&host=' + window.location.protocol
+					+ '//' + window.location.hostname
+					+ '&postid=11'
+					+ '&is_singular=';
+				document.body.appendChild( script );
+			}
+
+			return;
+		}
+
+		// Safari ITP, not logged in, so redirect
+		if ( data.msg === 'LOGIN-REDIRECT' ) {
+			window.location = 'https://wordpress.com/log-in?redirect_to=' + window.location.href;
+			return;
+		}
+
+		// Safari ITP, storage access failed, remove the request
+		if ( data.msg === 'LOGIN-REMOVE' ) {
+			var css_zap = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } @media screen and ( max-width: 782px ) { html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } }';
+			var style_zap = document.createElement( 'style' );
+			style_zap.type = 'text/css';
+			style_zap.appendChild( document.createTextNode( css_zap ) );
+			document.body.appendChild( style_zap );
+
+			var e = document.getElementById( 'wpcom_request_access_iframe' );
+			e.parentNode.removeChild( e );
+
+			document.cookie = 'wordpress_com_login_access=denied; path=/; max-age=31536000';
+
+			return;
+		}
+
+		// Safari ITP
+		if ( data.msg === 'REQUEST_ACCESS' ) {
+			console.log( 'request access: safari' );
+
+			// Check ITP iframe enable/disable knob
+			if ( wpcom_remote_login_extra_auth !== 'safari_itp_iframe' ) {
+				return;
+			}
+
+			// If we are in a "private window" there is no ITP.
+			var private_window = false;
+			try {
+				var opendb = window.openDatabase( null, null, null, null );
+			} catch( e ) {
+				private_window = true;
+			}
+
+			if ( private_window ) {
+				console.log( 'private window' );
+				return;
+			}
+
+			var iframe = document.createElement( 'iframe' );
+			iframe.id = 'wpcom_request_access_iframe';
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'sandbox', 'allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-top-navigation-by-user-activation' );
+			iframe.src = 'https://r-login.wordpress.com/remote-login.php?wpcom_remote_login=request_access&origin=' + encodeURIComponent( data.origin ) + '&wpcomid=' + encodeURIComponent( data.wpcomid );
+
+			var css = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 46px !important; } * html body { margin-top: 46px !important; } @media screen and ( max-width: 660px ) { html { margin-top: 71px !important; } * html body { margin-top: 71px !important; } #wpcom_request_access_iframe { display: block; height: 71px !important; } } #wpcom_request_access_iframe { border: 0px; height: 46px; position: fixed; top: 0; left: 0; width: 100%; min-width: 100%; z-index: 99999; background: #23282d; } ';
+
+			var style = document.createElement( 'style' );
+			style.type = 'text/css';
+			style.id = 'wpcom_request_access_styles';
+			style.appendChild( document.createTextNode( css ) );
+			document.body.appendChild( style );
+
+			document.body.appendChild( iframe );
+		}
+
+		if ( data.msg === 'DONE' ) {
+			wpcom_remote_login_final_cleanup();
+		}
+	}
+}, false );
+
+// Inject the remote login iframe after the page has had a chance to load
+// more critical resources
+window.addEventListener( "DOMContentLoaded", function( e ) {
+	var iframe = document.createElement( "iframe" );
+	iframe.style.display = "none";
+	iframe.setAttribute( "scrolling", "no" );
+	iframe.setAttribute( "id", "wpcom_remote_login_key" );
+	iframe.src = "https://r-login.wordpress.com/remote-login.php"
+		+ "?wpcom_remote_login=key"
+		+ "&origin=aHR0cHM6Ly9hdXRvbWF0dGljLmNvbQ%3D%3D"
+		+ "&wpcomid=54117"
+		+ "&time=" + Math.floor( Date.now() / 1000 );
+	document.body.appendChild( iframe );
+}, false );
+</script>
+<title>Press &#8211; Automattic</title>
+<link rel="alternate" type="application/rss+xml" title="Automattic &raquo; Feed" href="https://automattic.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Automattic &raquo; Comments Feed" href="https://automattic.com/comments/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<style id="wp-img-auto-sizes-contain-inline-css">
+img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}
+/*# sourceURL=wp-img-auto-sizes-contain-inline-css */
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-2-1' href='/wp-content/mu-plugins/jetpack-plugin/moon/modules/related-posts/related-posts.css?m=1770909026i&cssminify=yes' type='text/css' media='all' />
+<style id="wp-block-image-inline-css">/* trimmed 8920 chars for fixture size */</style>
+<style id="wp-block-group-inline-css">
+.wp-block-group{box-sizing:border-box}:where(.wp-block-group.wp-block-group-is-layout-constrained){position:relative}
+/*# sourceURL=/wp-content/plugins/gutenberg-core/v23.7.2/build/styles/block-library/group/style.min.css */
+</style>
+<style id="wp-block-navigation-link-inline-css">
+.wp-block-navigation .wp-block-navigation-item__label{overflow-wrap:break-word}.wp-block-navigation .wp-block-navigation-item__description{display:none}.link-ui-tools{outline:1px solid #f0f0f0;padding:8px}.link-ui-block-inserter{padding-top:8px}.link-ui-block-inserter__back{margin-left:8px;text-transform:uppercase}
+/*# sourceURL=/wp-content/plugins/gutenberg-core/v23.7.2/build/styles/block-library/navigation-link/style.min.css */
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-10-1' href='/wp-content/plugins/gutenberg-core/v23.7.2/build/styles/block-library/navigation/style.min.css?m=1786699288i&cssminify=yes' type='text/css' media='all' />
+<style id="wp-block-columns-inline-css">/* trimmed 1695 chars for fixture size */</style>
+<style id="wp-block-post-title-inline-css">
+.wp-block-post-title{box-sizing:border-box;word-break:break-word}.wp-block-post-title :where(a){display:inline-block;font-family:inherit;font-size:inherit;font-style:inherit;font-weight:inherit;letter-spacing:inherit;line-height:inherit;text-decoration:inherit}
+/*# sourceURL=/wp-content/plugins/gutenberg-core/v23.7.2/build/styles/block-library/post-title/style.min.css */
+</style>
+<style id="wp-block-paragraph-inline-css">/* trimmed 768 chars for fixture size */</style>
+<style id="wp-block-heading-inline-css">/* trimmed 1276 chars for fixture size */</style>
+<style id="wp-block-separator-inline-css">/* trimmed 515 chars for fixture size */</style>
+<style id="wp-block-spacer-inline-css">
+.wp-block-spacer{clear:both}
+/*# sourceURL=/wp-content/plugins/gutenberg-core/v23.7.2/build/styles/block-library/spacer/style.min.css */
+</style>
+<style id="wp-block-embed-inline-css">/* trimmed 1776 chars for fixture size */</style>
+<style id="a8ctheme-brand-asset-card-style-inline-css">/* trimmed 3580 chars for fixture size */</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-30-1' href='/_static/??-eJyNjMEKhDAMBX9IfaiIXsRPWdxskGqbFNPi7y+CevY4wzA4YkkqiSUh5DL6vDgxrJziTNvFCKqCjxPC1yttBjtc5L0iswLvD0F/2bOB5l2zsX+iW5zDKYx1P3RN07b1sP4BKPs7aw==&cssminify=yes' type='text/css' media='all' />
+<style id="wp-block-post-content-inline-css">
+.wp-block-post-content{display:flow-root}
+/*# sourceURL=/wp-content/plugins/gutenberg-core/v23.7.2/build/styles/block-library/post-content/style.min.css */
+</style>
+<style id="wp-block-social-links-inline-css">/* trimmed 11878 chars for fixture size */</style>
+<style id="wp-block-library-inline-css">/* trimmed 4344 chars for fixture size */</style>
+<style id="global-styles-inline-css">/* trimmed 29630 chars for fixture size */</style>
+<style id="block-style-variation-styles-inline-css">
+:root :where(.wp-block-separator.is-style-thin--1){border-top-color: #ddd;border-top-width: 1px;border-top-style: solid;}
+:root :where(.wp-block-separator.is-style-thin--2){border-top-color: #ddd;border-top-width: 1px;border-top-style: solid;}
+:root :where(.wp-block-separator.is-style-thin--3){border-top-color: #ddd;border-top-width: 1px;border-top-style: solid;}
+/*# sourceURL=block-style-variation-styles-inline-css */
+</style>
+<style id="coblocks-inline-format-inline-css">
+.uppercase{text-transform:uppercase}
+/*# sourceURL=coblocks-inline-format-inline-css */
+</style>
+<style id="wp-block-template-skip-link-inline-css">/* trimmed 539 chars for fixture size */</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-46-1' href='/_static/??-eJx9jcEKg0AMRH+oaVhorR7Eb9E16IpZg8min2889FZ6GYbhPQYPgbhlo2zIBWQtU8qKcdvJd5be0AmmMfW0Ejv2jKoP/K0daZzIXNdvB6PzvyJ+A8MgO6mCJ6fCYLN/6e113IZXU9WfUL/DcgHSTkDo&cssminify=yes' type='text/css' media='all' />
+<style id="core-block-supports-inline-css">/* trimmed 2164 chars for fixture size */</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-48-1' href='/_static/??-eJyNjMEKAjEMRH/IGiu4uxfxW2qMtZI2pUlZ/Ht3vYgI4m0eM29grg6lGBUDu1EmhTAhhG6Sg1lCt995D2oPpi2qbuA/IRXkfllLVTKFRYXaSPXrJHdXucdUFBqdWeIS42v/xl9SJHEsGCxJ+QB35ZDaqp7y0Y/jeBi8n4b7E2teWGA=&cssminify=yes' type='text/css' media='all' />
+<style id="jetpack-global-styles-frontend-style-inline-css">
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+/*# sourceURL=jetpack-global-styles-frontend-style-inline-css */
+</style>
+<script id="a8ctheme-brand-asset-card-script-js" src="https://automattic.com/wp-content/themes/a8c/automattic-2011/blocks/build/brand-asset/view.js?m=1771539985i&#038;ver=e85f2270f8017ca3cc53"></script>
+<script id="wpcom-actionbar-placeholder-js-extra">/* trimmed 684 chars for fixture size */</script>
+<script id="jetpack-mu-wpcom-settings-js-before">
+var JETPACK_MU_WPCOM_SETTINGS = {"assetsUrl":"https://automattic.com/wp-content/mu-plugins/jetpack-mu-wpcom-plugin/moon/jetpack_vendor/automattic/jetpack-mu-wpcom/src/build/"};
+//# sourceURL=jetpack-mu-wpcom-settings-js-before
+</script>
+<script crossorigin='anonymous' type='text/javascript'  src='/wp-content/js/rlt-proxy.js?m=1720530689i'></script>
+<script id="rlt-proxy-js-after">
+	rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+//# sourceURL=rlt-proxy-js-after
+</script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://automattic.wordpress.com/xmlrpc.php?rsd" />
+<meta name="generator" content="WordPress.com" />
+<link rel='shortlink' href='https://wp.me/Pe4R-b' />
+	<style>
+		@font-face {
+			font-family: Recoleta;
+			font-display: swap;
+			src: url('https://s1.wp.com/i/fonts/recoleta/400.woff2')
+		}
+	</style>
+	<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fautomattic.com%2Fpress%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fautomattic.com%2Fpress%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Press" />
+<meta property="og:url" content="https://automattic.com/press/" />
+<meta property="og:description" content="We’re happy to answer your questions about Automattic, or about any of our products.&nbsp;Drop us a line&nbsp;or&nbsp;sign up to receive news updates. Fact Sheet Automattic wants to make the web a …" />
+<meta property="article:published_time" content="2005-12-19T15:56:13+00:00" />
+<meta property="article:modified_time" content="2026-08-04T14:06:40+00:00" />
+<meta property="og:site_name" content="Automattic" />
+<meta property="og:image" content="https://automattic.com/wp-content/uploads/2020/02/2019-09-11-automattic-web-1.jpg" />
+<meta property="og:image:width" content="1280" />
+<meta property="og:image:height" content="610" />
+<meta property="og:image:alt" content="" />
+<meta property="og:locale" content="en_US" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<meta name="twitter:creator" content="@automattic" />
+<meta name="twitter:site" content="@automattic" />
+<meta name="twitter:text:title" content="Press" />
+<meta name="twitter:image" content="https://automattic.com/wp-content/uploads/2020/02/2019-09-11-automattic-web-1.jpg?w=640" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:app:name:iphone" content="Jetpack" />
+<meta name="twitter:app:id:iphone" content="1565481562" />
+<meta name="twitter:app:name:ipad" content="Jetpack" />
+<meta name="twitter:app:id:ipad" content="1565481562" />
+<meta name="twitter:app:name:googleplay" content="Jetpack" />
+<meta name="twitter:app:id:googleplay" content="com.jetpack.android" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel='openid.server' href='https://automattic.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://automattic.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://automattic.com/osd.xml" title="Automattic" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+<link rel="preload" href="https://automattic.com/wp-content/themes/a8c/automattic-2011/fonts/source-serif-pro-italic-400-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="canonical" href="https://automattic.com/press/" />
+<script type="application/ld+json">
+{"@context":"https:\/\/schema.org","@graph":[{"@type":"Corporation","@id":"https:\/\/automattic.com\/#organization","url":"https:\/\/automattic.com\/","name":"Automattic","foundingDate":"2005-08-01","slogan":"We don't make software for free, we make it for freedom.","description":"We are the people behind WordPress.com, WooCommerce, Jetpack, Simplenote, Longreads, VaultPress, Akismet, Gravatar, Crowdsignal, Cloudup, and more. We believe in making the web a better place, and we believe in Open Source. The vast majority of our work is available under the GPL.","logo":{"@type":"ImageObject","@id":"https:\/\/automattic.com\/#logo","url":"https:\/\/automattic.com\/wp-content\/themes\/a8c\/automattic-2011\/images\/automattic-logo-2x.png","width":552,"height":60,"caption":"Automattic"},"image":{"@id":"https:\/\/automattic.com\/#logo"},"address":{"@type":"PostalAddress","streetAddress":"60 29th Street #343","addressLocality":"San Francisco","addressRegion":"CA","postalCode":"94110","addressCountry":"US"},"founder":{"@type":"Person","@id":"https:\/\/wordpress.com\/schema.org\/author\/5#person","name":"Matt Mullenweg","description":"In 2002 I started contributing to Open Source software, and life has just gotten better from there. Co-founder of WordPress, founder Automattic.","image":{"@type":"ImageObject","@id":"https:\/\/wordpress.com\/schema.org\/author\/5#personimage","url":"https:\/\/secure.gravatar.com\/avatar\/33252cd1f33526af53580fcb1736172f06e6716f32afdd1be19ec3096d15dea5?s=96&d=mm","width":96,"height":96,"caption":"Matt Mullenweg"}},"numberOfEmployees":1434,"sameAs":["https:\/\/x.com\/automattic","https:\/\/www.facebook.com\/AutomatticInc","https:\/\/www.linkedin.com\/company\/automattic\/","https:\/\/en.wikipedia.org\/wiki\/Automattic","https:\/\/www.youtube.com\/c\/automattic"],"subOrganization":{"@id":"https:\/\/wordpress.com\/#organization"}},{"@type":"WebSite","@id":"https:\/\/automattic.com\/#website","url":"https:\/\/automattic.com\/","name":"Automattic","description":"Making the web a better place","potentialAction":{"@type":"SearchAction","target":"https:\/\/automattic.com\/search\/{search_term_string}\/","query-input":"required name=search_term_string"},"publisher":{"@id":"https:\/\/automattic.com\/#organization"},"image":{"@id":"https:\/\/automattic.com\/#logo"},"sameAs":["https:\/\/x.com\/automattic","https:\/\/www.facebook.com\/AutomatticInc","https:\/\/www.linkedin.com\/company\/automattic\/","https:\/\/en.wikipedia.org\/wiki\/Automattic","https:\/\/www.youtube.com\/c\/automattic"]},{"@type":"BreadcrumbList","@id":"https:\/\/automattic.com\/press\/#breadcrumbs","itemListElement":[{"@type":"ListItem","position":0,"item":{"@type":"WebSite","@id":"https:\/\/automattic.com\/#website-breadcrumb","url":"https:\/\/automattic.com\/","name":"Home"}},{"@type":"ListItem","position":1,"item":{"@type":"CollectionPage","@id":"https:\/\/automattic.com\/category\/uncategorized\/#term-breadcrumb","url":"https:\/\/automattic.com\/category\/uncategorized\/","name":"Uncategorized"}},{"@type":"ListItem","position":2,"item":{"@type":"WebPage","@id":"https:\/\/automattic.com\/press\/#webpage-breadcrumb","url":"https:\/\/automattic.com\/press\/","name":"Press"}}]},{"@type":"ImageObject","@id":"https:\/\/automattic.com\/press\/#primaryimage","url":"https:\/\/automattic.com\/wp-content\/uploads\/2024\/11\/cropped-automattic-logo-square.png?w=200","width":200,"height":200,"caption":"Press"},{"@type":"WebPage","@id":"https:\/\/automattic.com\/press\/#webpage","url":"https:\/\/automattic.com\/press\/","name":"Press","description":"Making the web a better place","inLanguage":"en","isPartOf":{"@id":"https:\/\/automattic.com\/#website"},"primaryImageOfPage":{"@id":"https:\/\/automattic.com\/press\/#primaryimage"},"publisher":{"@id":"https:\/\/automattic.com\/#organization"},"datePublished":"2005-12-19T15:56:13+0000","dateModified":"2026-08-04T14:06:40+0000","breadcrumb":{"@id":"https:\/\/automattic.com\/press\/#breadcrumbs"}},{"@type":"VideoObject","@id":"https:\/\/automattic.com\/press\/#video-1","contentUrl":"https:\/\/www.youtube.com\/watch?v=5Fv4WQ-e-0E","name":"Press","thumbnailUrl":"https:\/\/img.youtube.com\/vi\/5Fv4WQ-e-0E\/maxresdefault.jpg","uploadDate":"2005-12-19T15:56:13+0000","embedUrl":"https:\/\/www.youtube.com\/embed\/5Fv4WQ-e-0E","publisher":{"@id":"https:\/\/wordpress.com\/#organization"}}]}
+</script>
+<meta name="description" content="We’re happy to answer your questions about Automattic, or about any of our products.&nbsp;Drop us a line&nbsp;or&nbsp;sign up to receive news updates. Fact Sheet Automattic wants to make the web a better place. Our family includes WordPress.com, Woo, Jetpack, WordPress VIP, Simplenote, Longreads, The Atavist, WPScan, Akismet, Gravatar, Crowdsignal, Cloudup, Tumblr, Day One, Pocket Casts,&hellip;" />
+<style class="wp-fonts-local">/* trimmed 3760 chars for fixture size */</style>
+<link rel="icon" href="https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=32" sizes="32x32" />
+<link rel="icon" href="https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=192" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=180" />
+<meta name="msapplication-TileImage" content="https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=270" />
+<!-- Your Google Analytics Plugin is missing the tracking ID -->
+</head>
+
+<body class="wp-singular page-template-default page page-id-11 page-parent wp-custom-logo wp-embed-responsive wp-theme-a8cautomattic-2011 is-block-theme customizer-styles-applied jetpack-reblog-enabled">
+<script id='jetpack-search-theme-token-sampler'>(function(){try{var c=getComputedStyle(document.body),r=document.documentElement,ink=c.color,bg=c.backgroundColor;if(ink){r.style.setProperty('--jp-search-page-ink',ink);}if(bg&&bg!==ink&&bg!=='rgba(0, 0, 0, 0)'&&bg!=='transparent'){r.style.setProperty('--jp-search-page-surface',bg);}}catch(e){}})();</script>
+<a class="skip-link screen-reader-text" id="wp-skip-link" href="#content">Skip to content</a><div class="wp-site-blocks"><header class="wp-block-template-part">
+<div class="wp-block-group is-layout-constrained has-global-padding wp-block-group-is-layout-constrained">
+	
+	<div class="wp-block-columns header is-style-default is-layout-flex wp-container-core-columns-is-layout-b26fcb8f wp-block-columns-is-layout-flex" style="border-top-color:var(--wp--preset--color--contrast);border-top-width:3px;border-bottom-color:#cccccc;border-bottom-width:1px;padding-top:18px;padding-bottom:16px">
+		
+		<div class="wp-block-column is-vertically-aligned-center is-layout-flow wp-block-column-is-layout-flow">
+			
+			<div class="wp-block-group logo is-nowrap is-layout-flex wp-container-core-group-is-layout-de868385 wp-block-group-is-layout-flex">
+				
+				<figure class="wp-block-image size-full is-resized">
+					<a class="logo-link" href="/">
+						<img src="https://automattic.com/wp-content/themes/a8c/automattic-2011/images/automattic-20.svg" alt="Home of Automattic.com" />
+					</a>
+				</figure>
+				
+
+			</div>
+			
+		</div>
+		
+
+		
+		<div class="wp-block-column is-vertically-aligned-center internal-links is-layout-flow wp-block-column-is-layout-flow" style="font-style:normal;font-weight:700">
+			<nav style="font-size:clamp(0.875rem, 0.875rem + ((1vw - 0.2rem) * 0.045), 0.9rem);line-height:1.94" class="has-text-color has-contrast-color items-justified-right no-wrap wp-block-navigation is-content-justification-right is-nowrap is-layout-flex wp-container-core-navigation-is-layout-091ab7b5 wp-block-navigation-is-layout-flex"><ul style="font-size:clamp(0.875rem, 0.875rem + ((1vw - 0.2rem) * 0.045), 0.9rem);line-height:1.94" class="wp-block-navigation__container has-text-color has-contrast-color items-justified-right no-wrap wp-block-navigation"><li style="line-height:1.94" class="wp-block-navigation-item page-item page-item-home wp-block-navigation-link"><a class="wp-block-navigation-item__content"  href="/"><span class="wp-block-navigation-item__label">Home</span></a></li><li style="line-height:1.94" class="wp-block-navigation-item page-item page-item-about wp-block-navigation-link"><a class="wp-block-navigation-item__content"  href="/about/"><span class="wp-block-navigation-item__label">About Us</span></a></li><li style="line-height:1.94" class="wp-block-navigation-item page-item page-item-news wp-block-navigation-link"><a class="wp-block-navigation-item__content"  href="/news/"><span class="wp-block-navigation-item__label">News</span></a></li><li style="line-height:1.94" class="wp-block-navigation-item page-item page-item-work-with-us wp-block-navigation-link"><a class="wp-block-navigation-item__content"  href="/work-with-us/"><span class="wp-block-navigation-item__label">Work With Us</span></a></li></ul></nav>
+		</div>
+		
+	</div>
+	
+</div>
+
+
+</header>
+
+
+<div class="wp-block-group has-global-padding is-layout-constrained wp-block-group-is-layout-constrained" id="container">
+	
+	<main class="wp-block-group tier has-global-padding is-layout-constrained wp-block-group-is-layout-constrained" id="content">
+		
+
+		<h2 class="wp-block-post-title">Press</h2>
+
+		<div class="entry-content wp-block-post-content has-global-padding is-layout-constrained wp-block-post-content-is-layout-constrained">
+<p class="has-large-font-size wp-block-paragraph"><em>We’re happy to answer your questions about Automattic, or about any of our products.&nbsp;<a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;tf=1&amp;to=press@automattic.com" target="_blank" rel="noreferrer noopener">Drop us a line</a>&nbsp;or&nbsp;<a href="http://wordpress.us8.list-manage.com/subscribe?u=4471f40dba4ec0e34130a91a5&amp;id=e8fa0cdabe">sign up to receive news updates</a>.</em></p>
+
+
+
+<h2 class="wp-block-heading">Fact Sheet</h2>
+
+
+
+<div class="wp-block-columns is-layout-flex wp-container-core-columns-is-layout-f97d0b1c wp-block-columns-is-layout-flex">
+<div class="wp-block-column is-layout-flow wp-block-column-is-layout-flow" style="flex-basis:66.66%">
+<p class="wp-block-paragraph">Automattic wants to make the web a better place. Our family includes <a href="https://wordpress.com/">WordPress.com</a>, <a href="https://woocommerce.com/">Woo</a>, <a href="https://jetpack.com/">Jetpack</a>, <a href="https://wpvip.com/">WordPress VIP</a>, <a href="https://simplenote.com/">Simplenote</a>, <em><a href="https://longreads.com/">Longreads</a></em>, <a href="https://magazine.atavist.com/"><em>The Atavist</em></a>, <a href="https://wpscan.com/">WPScan</a>, <a href="https://akismet.com/">Akismet</a>, <a href="https://en.gravatar.com/">Gravatar</a>, <a href="https://crowdsignal.com/">Crowdsignal</a>, <a href="https://cloudup.com/">Cloudup</a>, <a href="https://www.tumblr.com/">Tumblr</a>, <a href="https://dayoneapp.com/">Day One</a>, <a href="https://www.pocketcasts.com/">Pocket Casts</a>, <a href="https://newspack.com/">Newspack</a>, <a href="https://www.beeper.com/">Beeper</a>, and more. With WordPress.com, you can create beautiful websites and blogs for free and enhance those sites with our premium services. A fully distributed company, Automattic has more than 1,447 employees working from 81 countries.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Company Name:</strong>&nbsp;Automattic Inc.<br><strong>Founded:</strong>&nbsp;August 2005<br><strong>Founder &amp; CEO:</strong>&nbsp;<a href="https://ma.tt/">Matt Mullenweg</a><br><strong>CFO:</strong>&nbsp;<a href="https://www.prnewswire.com/news-releases/automattic-announces-mark-davies-as-chief-financial-officer-300939286.html">Mark Davies</a><br><strong>Staff:</strong>&nbsp;1,447<br><strong>Headquarters:</strong>&nbsp;San Francisco, CA, USA<br><strong>Staff locations:</strong>&nbsp;81 countries, speaking 107 languages<br><strong>Key Investors:</strong>&nbsp;<a href="https://www.tigerglobal.com/">Tiger Global Management</a>,&nbsp;<a href="https://salesforceventures.com/">Salesforce Ventures</a>,&nbsp;<a href="http://insightpartners.com/">Insight Venture Partners</a>,&nbsp;<a href="https://www.iconiqcapital.com/">ICONIQ Capital</a>,&nbsp;<a href="https://trueventures.com/">True Ventures</a>,&nbsp;<a href="https://www.wellington.com/en">Wellington Management</a>,&nbsp;<a href="https://www.blackrock.com/us/individual">BlackRock</a>,&nbsp;<a href="https://www.altaparkcapital.com/">Alta Park Capital</a>,&nbsp;<a href="https://addition.com/">Addition</a>,&nbsp;<a href="https://www.schonfeld.com/">Schonfeld</a>,&nbsp;<a href="https://www.nytco.com/">New York Times Company</a>.<br><strong>Status:</strong>&nbsp;Privately held and independent, in later-stage growth phase.</p>
+
+
+
+<h2 class="wp-block-heading"><strong>Journalists, Please Note&nbsp;</strong></h2>
+
+
+
+<p class="wp-block-paragraph">Automattic owns and operates&nbsp;<a href="https://wordpress.com/">WordPress.com</a>, which is a hosted version of the open source WordPress software with added features for security, speed and support. Please append “.com” when referencing our product name.</p>
+
+
+
+<p class="wp-block-paragraph"><a href="https://wordpress.org/">WordPress</a>&nbsp;is open source software, which is written, maintained, and supported by thousands of independent contributors worldwide. Automattic is a major contributor to the WordPress open source project. If you would like to contribute to the WordPress open source project, learn more at&nbsp;<a href="https://make.wordpress.org/">make.wordpress.org</a>.</p>
+
+
+
+<h2 class="wp-block-heading">Facts &amp; Figures</h2>
+
+
+
+<p class="wp-block-paragraph">Internal:&nbsp;<a href="https://wordpress.com/activity/">WordPress.com/activity</a><br>External:&nbsp;<a href="https://w3techs.com/technologies/overview/content_management">W3Techs</a>,&nbsp;<a href="https://trends.builtwith.com/cms">BuiltWith</a></p>
+</div>
+
+
+
+<div class="wp-block-column is-layout-flow wp-block-column-is-layout-flow" style="flex-basis:33.33%">
+<div class="wp-block-group is-vertical is-layout-flex wp-container-core-group-is-layout-7c98d980 wp-block-group-is-layout-flex">
+<figure class="wp-block-image size-large"><img data-attachment-id="234102" data-permalink="https://automattic.com/?attachment_id=234102" data-orig-file="https://automattic.com/wp-content/uploads/2020/02/2019-09-11-automattic-web-1.jpg" data-orig-size="1280,610" data-comments-opened="0" data-image-title="Automattic Grand Meetup 2019 in Florida, USA" data-image-description="" data-image-caption="" data-large-file="https://automattic.com/wp-content/uploads/2020/02/2019-09-11-automattic-web-1.jpg?w=1024" width="1024" height="488" src="https://automattic.com/wp-content/uploads/2020/02/2019-09-11-automattic-web-1.jpg?w=1024" alt="" class="wp-image-234102" srcset="https://automattic.com/wp-content/uploads/2020/02/2019-09-11-automattic-web-1.jpg?w=1024 1024w, https://automattic.com/wp-content/uploads/2020/02/2019-09-11-automattic-web-1.jpg?w=150 150w, https://automattic.com/wp-content/uploads/2020/02/2019-09-11-automattic-web-1.jpg?w=300 300w, https://automattic.com/wp-content/uploads/2020/02/2019-09-11-automattic-web-1.jpg?w=768 768w, https://automattic.com/wp-content/uploads/2020/02/2019-09-11-automattic-web-1.jpg 1280w" sizes="(max-width: 1024px) 100vw, 1024px" /></figure>
+
+
+
+<div class="wp-block-group is-vertical is-layout-flex wp-container-core-group-is-layout-f0b6b26e wp-block-group-is-layout-flex">
+<p class="has-small-font-size wp-block-paragraph"><strong>Company Photo</strong>&nbsp;–&nbsp;<a href="https://automattic.com/wp-content/uploads/2019/10/2019-automattic-company.jpg">Download</a></p>
+
+
+
+<p class="has-text-color has-link-color has-small-font-size wp-elements-1 wp-block-paragraph" style="color:#6d8692">Grand Meetup, 2019</p>
+</div>
+</div>
+
+
+
+<div class="wp-block-group is-vertical is-layout-flex wp-container-core-group-is-layout-7c98d980 wp-block-group-is-layout-flex">
+<figure class="wp-block-image size-large"><img data-attachment-id="238213" data-permalink="https://automattic.com/press/brand-materials/2020_matt_mullenweg_color/" data-orig-file="https://automattic.com/wp-content/uploads/2020/10/2020_matt_mullenweg_color.jpg" data-orig-size="3000,4500" data-comments-opened="0" data-image-title="2020_matt_mullenweg_color" data-image-description="" data-image-caption="" data-large-file="https://automattic.com/wp-content/uploads/2020/10/2020_matt_mullenweg_color.jpg?w=683" width="683" height="1024" src="https://automattic.com/wp-content/uploads/2020/10/2020_matt_mullenweg_color.jpg?w=683" alt="" class="wp-image-238213" srcset="https://automattic.com/wp-content/uploads/2020/10/2020_matt_mullenweg_color.jpg?w=683 683w, https://automattic.com/wp-content/uploads/2020/10/2020_matt_mullenweg_color.jpg?w=1366 1366w, https://automattic.com/wp-content/uploads/2020/10/2020_matt_mullenweg_color.jpg?w=100 100w, https://automattic.com/wp-content/uploads/2020/10/2020_matt_mullenweg_color.jpg?w=200 200w, https://automattic.com/wp-content/uploads/2020/10/2020_matt_mullenweg_color.jpg?w=768 768w" sizes="(max-width: 683px) 100vw, 683px" /></figure>
+
+
+
+<div class="wp-block-group is-vertical is-layout-flex wp-container-core-group-is-layout-f0b6b26e wp-block-group-is-layout-flex">
+<p class="has-small-font-size wp-block-paragraph"><strong>Matt Mullenweg</strong>&nbsp;–&nbsp;<a href="https://automattic.com/wp-content/uploads/2020/10/2020_matt_mullenweg_color.jpg">Download</a></p>
+
+
+
+<p class="has-text-color has-link-color has-small-font-size wp-elements-2 wp-block-paragraph" style="color:#6d8692">Founder &amp; CEO</p>
+</div>
+</div>
+</div>
+</div>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity is-style-thin is-style-thin--1" />
+
+
+
+<div class="wp-block-group is-content-justification-space-between is-nowrap is-layout-flex wp-container-core-group-is-layout-93413f48 wp-block-group-is-layout-flex" style="margin-bottom:var(--wp--preset--spacing--40)">
+<h2 class="wp-block-heading">Recent News</h2>
+
+
+
+<p class="wp-block-paragraph"><a href="https://automattic.com/news/">All the latest news</a></p>
+</div>
+
+
+
+<div class="wp-block-group no-underline is-layout-grid wp-container-core-group-is-layout-2a9b66cb wp-block-group-is-layout-grid">
+<div class="wp-block-group has-global-padding is-layout-constrained wp-container-core-group-is-layout-e66bea23 wp-block-group-is-layout-constrained">
+<h4 class="wp-block-heading"><a href="https://automattic.com/2024/10/31/legal-response-to-wp-engine/"></a><a href="https://automattic.com/2025/06/20/automattic-20-years/">Celebrating 20 Years of Automattic</a></h4>
+
+
+
+<p class="has-small-font-size wp-block-paragraph">On June 20, 2005, Matt Mullenweg made his first hire. And with that, Automattic was born.</p>
+</div>
+
+
+
+<div class="wp-block-group has-global-padding is-layout-constrained wp-container-core-group-is-layout-e66bea23 wp-block-group-is-layout-constrained">
+<h4 class="wp-block-heading"><a href="https://automattic.com/2024/10/31/legal-response-to-wp-engine/"></a><a href="https://automattic.com/2024/10/31/legal-response-to-wp-engine/"></a><a href="https://automattic.com/2025/06/12/automattic-welcomes-clay/">Automattic Welcomes Clay</a></h4>
+
+
+
+<p class="has-small-font-size wp-block-paragraph">The platform offers unique value through AI-driven insights, comprehensive coverage, revolutionary search, instant notes and more, all designed to simplify the way we build and maintain relationships.</p>
+</div>
+
+
+
+<div class="wp-block-group has-global-padding is-layout-constrained wp-container-core-group-is-layout-e66bea23 wp-block-group-is-layout-constrained">
+<h4 class="wp-block-heading"><a href="https://automattic.com/2024/10/31/legal-response-to-wp-engine/"></a><a href="https://automattic.com/2024/10/31/legal-response-to-wp-engine/"></a><a href="https://automattic.com/2025/06/12/automattic-welcomes-clay/"></a><a href="https://automattic.com/2025/05/28/automattic-open-horizons-scholarship/">Automattic Donates $30,000 to Launch the Open Horizons Scholarship</a></h4>
+
+
+
+<p class="has-small-font-size wp-block-paragraph">This new initiative designed to support WordPress contributors from underrepresented, underserved, and economically disadvantaged backgrounds.</p>
+</div>
+
+
+
+<div class="wp-block-group has-global-padding is-layout-constrained wp-container-core-group-is-layout-e66bea23 wp-block-group-is-layout-constrained">
+<h4 class="wp-block-heading"><a href="https://automattic.com/2024/10/31/legal-response-to-wp-engine/"></a><a href="https://automattic.com/2024/10/31/legal-response-to-wp-engine/"></a><a href="https://automattic.com/2025/06/12/automattic-welcomes-clay/"></a><a href="https://automattic.com/2024/11/21/automattic-welcomes-harper-and-elijah-potter/">Automattic Acquires Harper</a></h4>
+
+
+
+<p class="has-small-font-size wp-block-paragraph">Harper—which is named after novelist Harper Lee—delivers grammar and language suggestions in under 20 milliseconds.&nbsp;</p>
+</div>
+</div>
+
+
+
+<div style="height:48px" aria-hidden="true" class="wp-block-spacer"></div>
+
+
+
+<div class="wp-block-group is-content-justification-space-between is-nowrap is-layout-flex wp-container-core-group-is-layout-93413f48 wp-block-group-is-layout-flex" style="margin-bottom:var(--wp--preset--spacing--40)">
+<h2 class="wp-block-heading">Defending Open Source</h2>
+</div>
+
+
+
+<div class="wp-block-group no-underline is-layout-grid wp-container-core-group-is-layout-2a9b66cb wp-block-group-is-layout-grid">
+<div class="wp-block-group has-global-padding is-layout-constrained wp-container-core-group-is-layout-e66bea23 wp-block-group-is-layout-constrained">
+<h4 class="wp-block-heading"><a href="https://automattic.com/2024/10/31/legal-response-to-wp-engine/">Our Legal Response to WP Engine’s Meritless Complaint</a></h4>
+
+
+
+<p class="has-small-font-size wp-block-paragraph">Read our most recent statement.&nbsp;</p>
+</div>
+
+
+
+<div class="wp-block-group has-global-padding is-layout-constrained wp-container-core-group-is-layout-e66bea23 wp-block-group-is-layout-constrained">
+<h4 class="wp-block-heading"><a href="https://automattic.com/2024/10/31/legal-response-to-wp-engine/"></a><a href="https://automattic.com/2024/10/31/legal-response-to-wp-engine/">Protecting the Future of WordPress</a></h4>
+
+
+
+<p class="has-small-font-size wp-block-paragraph">Read about how we are protecting the community against Silver Lake and WP Engine</p>
+</div>
+</div>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity is-style-thin is-style-thin--2" />
+
+
+
+<div class="wp-block-group is-content-justification-space-between is-nowrap is-layout-flex wp-container-core-group-is-layout-24c1ff00 wp-block-group-is-layout-flex" style="margin-bottom:var(--wp--preset--spacing--50)">
+<h2 class="wp-block-heading">20 Years of Automattic </h2>
+
+
+
+<p class="wp-block-paragraph"><a href="https://automattic.com/news/"></a><a href="https://www.youtube.com/c/automattic" target="_blank" rel="noreferrer noopener">Automattic YouTube channel</a></p>
+</div>
+
+
+
+<figure class="wp-block-embed is-type-video is-provider-youtube wp-block-embed-youtube wp-embed-aspect-16-9 wp-has-aspect-ratio"><div class="wp-block-embed__wrapper">
+<span class="embed-youtube" style="text-align:center; display: block;"><iframe class="youtube-player" width="640" height="360" src="https://www.youtube.com/embed/5Fv4WQ-e-0E?version=3&#038;rel=1&#038;showsearch=0&#038;showinfo=1&#038;iv_load_policy=1&#038;fs=1&#038;hl=en&#038;autohide=2&#038;wmode=transparent" allowfullscreen="true" style="border:0;" sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-popups-to-escape-sandbox"></iframe></span>
+</div></figure>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity is-style-thin is-style-thin--3" />
+
+
+
+<h2 class="wp-block-heading">Logos</h2>
+
+
+
+<h4 class="wp-block-heading">Automattic</h4>
+
+
+
+<div class="wp-block-group no-underline is-layout-grid wp-container-core-group-is-layout-2a9b66cb wp-block-group-is-layout-grid">
+<div class="wp-block-group has-global-padding is-layout-constrained wp-container-core-group-is-layout-e66bea23 wp-block-group-is-layout-constrained">
+<div class="wp-block-group has-border-color has-a-8-c-lightest-gray-border-color has-global-padding is-layout-constrained wp-block-group-is-layout-constrained" style="border-width:1px">
+<figure class="wp-block-image size-large has-custom-border"><img data-attachment-id="153968" data-permalink="https://automattic.com/automattic-cmyk-2/" data-orig-file="https://automattic.com/wp-content/uploads/2015/02/automattic-cmyk.png" data-orig-size="1350,450" data-comments-opened="0" data-image-title="automattic-cmyk" data-image-description="" data-image-caption="" data-large-file="https://automattic.com/wp-content/uploads/2015/02/automattic-cmyk.png?w=1024" loading="lazy" width="1024" height="341" src="https://automattic.com/wp-content/uploads/2015/02/automattic-cmyk.png?w=1024" alt="" class="wp-image-153968" style="border-style:none;border-width:0px" srcset="https://automattic.com/wp-content/uploads/2015/02/automattic-cmyk.png?w=1024 1024w, https://automattic.com/wp-content/uploads/2015/02/automattic-cmyk.png?w=150 150w, https://automattic.com/wp-content/uploads/2015/02/automattic-cmyk.png?w=300 300w, https://automattic.com/wp-content/uploads/2015/02/automattic-cmyk.png?w=768 768w, https://automattic.com/wp-content/uploads/2015/02/automattic-cmyk.png 1350w" sizes="auto, (max-width: 1024px) 100vw, 1024px" /></figure>
+</div>
+
+
+
+<div class="wp-block-group has-small-font-size is-vertical is-layout-flex wp-container-core-group-is-layout-f0b6b26e wp-block-group-is-layout-flex">
+<p class="has-small-font-size wp-block-paragraph">Color Logo</p>
+
+
+
+<p class="has-small-font-size wp-block-paragraph"><a href="https://automattic.com/wp-content/uploads/2021/09/automattic-logotype-color.png">PNG</a>&nbsp;·&nbsp;<a href="https://automattic.com/wp-content/uploads/2021/09/automattic-logotype-color.pdf">PDF</a></p>
+</div>
+</div>
+
+
+
+<div class="wp-block-group has-global-padding is-layout-constrained wp-container-core-group-is-layout-e66bea23 wp-block-group-is-layout-constrained">
+<div class="wp-block-group has-title-blue-background-color has-background has-global-padding is-layout-constrained wp-block-group-is-layout-constrained">
+<figure class="wp-block-image size-large has-custom-border"><img data-attachment-id="185390" data-permalink="https://automattic.com/press/logo-automattic-white/" data-orig-file="https://automattic.com/wp-content/uploads/2016/05/logo-automattic-white.png" data-orig-size="1140,380" data-comments-opened="0" data-image-title="White Logo" data-image-description="" data-image-caption="" data-large-file="https://automattic.com/wp-content/uploads/2016/05/logo-automattic-white.png?w=1024" loading="lazy" width="1024" height="341" src="https://automattic.com/wp-content/uploads/2016/05/logo-automattic-white.png?w=1024" alt="" class="has-border-color has-a-8-c-lightest-gray-border-color wp-image-185390" style="border-width:1px" srcset="https://automattic.com/wp-content/uploads/2016/05/logo-automattic-white.png?w=1024 1024w, https://automattic.com/wp-content/uploads/2016/05/logo-automattic-white.png?w=150 150w, https://automattic.com/wp-content/uploads/2016/05/logo-automattic-white.png?w=300 300w, https://automattic.com/wp-content/uploads/2016/05/logo-automattic-white.png?w=768 768w, https://automattic.com/wp-content/uploads/2016/05/logo-automattic-white.png 1140w" sizes="auto, (max-width: 1024px) 100vw, 1024px" /></figure>
+</div>
+
+
+
+<div class="wp-block-group has-small-font-size is-vertical is-layout-flex wp-container-core-group-is-layout-f0b6b26e wp-block-group-is-layout-flex">
+<p class="has-small-font-size wp-block-paragraph">White Logo</p>
+
+
+
+<p class="has-small-font-size wp-block-paragraph"><a href="https://automattic.com/wp-content/uploads/2021/09/automattic-logotype-white.png">PNG</a>&nbsp;·&nbsp;<a href="https://automattic.com/wp-content/uploads/2021/09/automattic-logotype-white.pdf">PDF</a></p>
+</div>
+</div>
+</div>
+
+
+
+<h4 class="wp-block-heading">WordPress.com</h4>
+
+
+
+<div class="wp-block-group no-underline is-layout-grid wp-container-core-group-is-layout-2a9b66cb wp-block-group-is-layout-grid">
+<a href="https://automattic.com/wp-content/uploads/2024/09/wpcom_2024_brandkit.zip" class="wp-block-a8ctheme-brand-asset-card brand-asset-card is-default" target="_blank"><div class="brand-asset-card--inner"><div class="image-section"><img src="https://automattic.com/wp-content/uploads/2024/09/wpcom-dark-default402x.png?w=1024" alt="WordPress.com Brand Kit asset" /></div><div class="info-section"><span class="label">WordPress.com Brand Kit</span><span class="default-icon"></span></div></div></a>
+</div>
+
+
+
+<div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div>
+
+
+
+<p class="wp-block-paragraph">Looking for another product logo or images? <a href="https://automattic.com/press/brand-materials/">See all of our brand materials</a>.</p>
+
+
+
+<div style="height:32px" aria-hidden="true" class="wp-block-spacer"></div>
+</div>
+	</main>
+	
+</div>
+
+
+<footer class="wp-block-template-part">
+<div class="wp-block-group has-global-padding is-layout-constrained wp-block-group-is-layout-constrained">
+	
+	<div class="wp-block-columns are-vertically-aligned-center is-style-default is-layout-flex wp-container-core-columns-is-layout-0f881cd9 wp-block-columns-is-layout-flex" style="border-top-width:3px;border-bottom-color:#cccccc;border-bottom-width:1px;padding-right:var(--wp--preset--spacing--40);padding-left:var(--wp--preset--spacing--40)">
+		
+		<div class="wp-block-column is-vertically-aligned-center left-section is-layout-flow wp-block-column-is-layout-flow" style="flex-basis:66%">
+			
+			<div class="wp-block-columns are-vertically-aligned-center is-nowrap is-layout-flex wp-container-core-columns-is-layout-3a88641f wp-block-columns-is-layout-flex">
+				
+				<div class="wp-block-column is-vertically-aligned-center external-links is-layout-flow wp-block-column-is-layout-flow" style="font-size:0.82rem">
+					<nav class="no-wrap secondary-menu wp-block-navigation is-content-justification-flex-start is-nowrap is-layout-flex wp-container-core-navigation-is-layout-6d24e0d9 wp-block-navigation-is-layout-flex" aria-label="Footer"><ul class="wp-block-navigation__container no-wrap secondary-menu wp-block-navigation"><li class="wp-block-navigation-item wp-block-navigation-link wp-container-content-9cfa9a5a"><a class="wp-block-navigation-item__content"  href="https://automattic.com/fieldguide/"><span class="wp-block-navigation-item__label">Field Guide</span></a></li><li class="wp-block-navigation-item wp-block-navigation-link wp-container-content-9cfa9a5a"><a class="wp-block-navigation-item__content"  href="https://automattic.com/contact/"><span class="wp-block-navigation-item__label">Contact</span></a></li><li class="wp-block-navigation-item wp-block-navigation-link"><a class="wp-block-navigation-item__content"  href="https://automattic.com/events/"><span class="wp-block-navigation-item__label">Events</span></a></li><li class="wp-block-navigation-item current-menu-item wp-block-navigation-link"><a class="wp-block-navigation-item__content"  href="https://automattic.com/press/" aria-current="page"><span class="wp-block-navigation-item__label">Press</span></a></li><li class="wp-block-navigation-item wp-block-navigation-link"><a class="wp-block-navigation-item__content"  href="https://meetomattic.com/" target="_blank"  ><span class="wp-block-navigation-item__label">Meet</span></a></li><li class="wp-block-navigation-item wp-block-navigation-link"><a class="wp-block-navigation-item__content"  href="https://automattic.com/privacy/"><span class="wp-block-navigation-item__label">Privacy</span></a></li></ul></nav>
+				</div>
+				
+
+				
+				<div class="wp-block-column is-vertically-aligned-center social-links is-layout-flow wp-block-column-is-layout-flow">
+					
+					<ul class="wp-block-social-links has-small-icon-size has-icon-color has-icon-background-color is-content-justification-center is-nowrap is-layout-flex wp-container-core-social-links-is-layout-ca61bfa8 wp-block-social-links-is-layout-flex">
+						<li style="color:#000000;background-color:#ffffff" class="wp-social-link wp-social-link-x has-black-color has-white-background-color wp-block-social-link"><a href="https://x.com/automattic" class="wp-block-social-link-anchor"><svg width="24" height="24" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M13.982 10.622 20.54 3h-1.554l-5.693 6.618L8.745 3H3.5l6.876 10.007L3.5 21h1.554l6.012-6.989L15.868 21h5.245l-7.131-10.378Zm-2.128 2.474-.697-.997-5.543-7.93H8l4.474 6.4.697.996 5.815 8.318h-2.387l-4.745-6.787Z" /></svg><span class="wp-block-social-link-label screen-reader-text">X</span></a></li>
+
+						<li style="color:#000000;background-color:#ffffff" class="wp-social-link wp-social-link-facebook has-black-color has-white-background-color wp-block-social-link"><a href="https://www.facebook.com/AutomatticInc/" class="wp-block-social-link-anchor"><svg width="24" height="24" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M12 2C6.5 2 2 6.5 2 12c0 5 3.7 9.1 8.4 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7C18.3 21.1 22 17 22 12c0-5.5-4.5-10-10-10z"></path></svg><span class="wp-block-social-link-label screen-reader-text">Facebook</span></a></li>
+
+						<li style="color:#000000;background-color:#ffffff" class="wp-social-link wp-social-link-youtube has-black-color has-white-background-color wp-block-social-link"><a href="https://www.youtube.com/c/automattic" class="wp-block-social-link-anchor"><svg width="24" height="24" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M21.8,8.001c0,0-0.195-1.378-0.795-1.985c-0.76-0.797-1.613-0.801-2.004-0.847c-2.799-0.202-6.997-0.202-6.997-0.202 h-0.009c0,0-4.198,0-6.997,0.202C4.608,5.216,3.756,5.22,2.995,6.016C2.395,6.623,2.2,8.001,2.2,8.001S2,9.62,2,11.238v1.517 c0,1.618,0.2,3.237,0.2,3.237s0.195,1.378,0.795,1.985c0.761,0.797,1.76,0.771,2.205,0.855c1.6,0.153,6.8,0.201,6.8,0.201 s4.203-0.006,7.001-0.209c0.391-0.047,1.243-0.051,2.004-0.847c0.6-0.607,0.795-1.985,0.795-1.985s0.2-1.618,0.2-3.237v-1.517 C22,9.62,21.8,8.001,21.8,8.001z M9.935,14.594l-0.001-5.62l5.404,2.82L9.935,14.594z"></path></svg><span class="wp-block-social-link-label screen-reader-text">YouTube</span></a></li>
+
+						<li style="color:#000000;background-color:#ffffff" class="wp-social-link wp-social-link-linkedin has-black-color has-white-background-color wp-block-social-link"><a href="https://www.linkedin.com/company/automattic/" class="wp-block-social-link-anchor"><svg width="24" height="24" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M19.7,3H4.3C3.582,3,3,3.582,3,4.3v15.4C3,20.418,3.582,21,4.3,21h15.4c0.718,0,1.3-0.582,1.3-1.3V4.3 C21,3.582,20.418,3,19.7,3z M8.339,18.338H5.667v-8.59h2.672V18.338z M7.004,8.574c-0.857,0-1.549-0.694-1.549-1.548 c0-0.855,0.691-1.548,1.549-1.548c0.854,0,1.547,0.694,1.547,1.548C8.551,7.881,7.858,8.574,7.004,8.574z M18.339,18.338h-2.669 v-4.177c0-0.996-0.017-2.278-1.387-2.278c-1.389,0-1.601,1.086-1.601,2.206v4.249h-2.667v-8.59h2.559v1.174h0.037 c0.356-0.675,1.227-1.387,2.526-1.387c2.703,0,3.203,1.779,3.203,4.092V18.338z"></path></svg><span class="wp-block-social-link-label screen-reader-text">LinkedIn</span></a></li>
+					</ul>
+					
+				</div>
+				
+			</div>
+			
+		</div>
+		
+
+		
+		<div class="wp-block-column is-vertically-aligned-center internal-links is-layout-flow wp-block-column-is-layout-flow" style="font-size:0.82rem">
+			<nav class="has-text-color has-contrast-color items-justified-right no-wrap wp-block-navigation is-content-justification-right is-nowrap is-layout-flex wp-container-core-navigation-is-layout-ebcc7d55 wp-block-navigation-is-layout-flex" aria-label=" 2"><ul class="wp-block-navigation__container has-text-color has-contrast-color items-justified-right no-wrap wp-block-navigation"><li style="line-height:1.94" class="wp-block-navigation-item page-item page-item-home wp-block-navigation-link"><a class="wp-block-navigation-item__content"  href="/"><span class="wp-block-navigation-item__label">Home</span></a></li><li style="line-height:1.94" class="wp-block-navigation-item page-item page-item-about wp-block-navigation-link"><a class="wp-block-navigation-item__content"  href="/about/"><span class="wp-block-navigation-item__label">About Us</span></a></li><li style="line-height:1.94" class="wp-block-navigation-item page-item page-item-news wp-block-navigation-link"><a class="wp-block-navigation-item__content"  href="/news/"><span class="wp-block-navigation-item__label">News</span></a></li><li style="line-height:1.94" class="wp-block-navigation-item page-item page-item-work-with-us wp-block-navigation-link"><a class="wp-block-navigation-item__content"  href="/work-with-us/"><span class="wp-block-navigation-item__label">Work With Us</span></a></li></ul></nav>
+		</div>
+		
+	</div>
+	
+
+	
+	<div class="wp-block-group copyright has-global-padding is-layout-constrained wp-container-core-group-is-layout-f045ee3a wp-block-group-is-layout-constrained" style="padding-top:var(--wp--preset--spacing--40);padding-right:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40);padding-left:var(--wp--preset--spacing--40)">
+		
+		<p class="has-text-color has-link-color wp-elements-3 wp-block-paragraph" style="color:#777777">
+			<em>&copy; Automattic Inc., purveyors of fine blogging and site-building services since 2005. Thank you for your&nbsp;time.</em>
+		</p>
+		
+	</div>
+	
+</div>
+
+
+</footer>
+</div>
+<!-- wpcom_wp_footer -->
+<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-*.php","/wp-admin/*","/files/*","/wp-content/*","/wp-content/plugins/*","/wp-content/themes/a8c/automattic-2011/*","/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+	<script type="speculationrules">
+	{
+		"prerender": [
+			{
+				"urls": [
+					"/",
+					"/about/",
+					"/news/",
+					"/work-with-us/"
+				]
+			}
+		]
+	}
+	</script>
+	<script type="text/javascript">/* trimmed 1026 chars for fixture size */</script>
+				<!-- A8C Analytics [start] -->
+			<script type="text/javascript">
+				( function() {
+					'use strict';
+
+					var setupAnalytics = function() {
+						window.a8cAnalyticsConfig = {"cookieBanner":{"version":"2","cssZIndex":50001,"skipBanner":false,"cookieDomain":"automattic.com","v1CookieName":"sensitive_pixel_option","v2CookieName":"sensitive_pixel_options","v1Text":"Our websites and dashboards use cookies. By continuing, you agree to their use. <a target=\"_blank\" href=\"https:\/\/automattic.com\/cookies\/\">Learn more<\/a>, including how to control cookies.","v2Text":"As an open-source company, we take your privacy seriously and want to be as transparent as possible. We use cookies to collect some personal data from you, such as browsing data, IP addresses, and other unique identifiers. Some of these cookies we absolutely need in order to make things work, and others you can choose in order to optimize your experience while using our site and services.","v2OptionsText":"Your privacy is critically important to us. We and our partners use, store, and process your personal data to optimize: our <strong>website<\/strong> such as by improving security or conducting analytics, <strong>marketing activities<\/strong> to help deliver relevant marketing or content, and your <strong>user experience<\/strong> such as by remembering your account name, language settings, or cart information, where applicable. You can customize your cookie settings below. Learn more in our <a href=\"https:\/\/automattic.com\/privacy\/\" target=\"_blank\">Privacy Policy<\/a> and <a href=\"https:\/\/automattic.com\/cookies\/\" target=\"_blank\">Cookie Policy<\/a>.","v2EssentialOptionHeading":"Required","v2EssentialOptionText":"These cookies are essential for our websites and services to perform basic functions and are necessary for us to operate certain features, like allowing registered users to authenticate and perform account-related functions, storing preferences set by users (like account name, language, and location), and ensuring our services operate properly.","v2AnalyticsOptionHeading":"Analytics","v2AnalyticsOptionText":"These cookies allow us to optimize performance by collecting information on how users interact with our websites.","v2AdvertisingOptionHeading":"Advertising","v2AdvertisingOptionText":"We and our advertising partners set these cookies to provide you with relevant content and to understand that content\u2019s effectiveness.","v1ButtonText":"Got It!","v2CustomizeButtonText":"Customize","v2AcceptAllButtonText":"Accept all","v2AcceptSelectionButtonText":"Accept selection","v2EssentialsOnlyButtonText":"Decline non-essential cookies","hiddenConsents":[],"isLoggedIn":false},"doNotSellDialog":{"contactEmailAddress":"privacypolicyupdates@automattic.com"},"adminAnalytics":"analytics-wpcom-admin.php","fireAnalyticsOptions":[]};
+					};
+
+					if ( window.defQueue && defQueue.isLOHP && defQueue.isLOHP === 2020 ) {
+						defQueue.items.push( setupAnalytics );
+					} else {
+						setupAnalytics();
+					}
+				} )();
+			</script>
+
+			
+<script type="text/javascript">/* trimmed 3593 chars for fixture size */</script>
+
+			<script type="text/javascript">/* trimmed 755 chars for fixture size */</script>
+			<!-- A8C Analytics [end] -->
+			<div style="display:none">
+	</div>
+		<div id="jp-carousel-loading-overlay">
+			<div id="jp-carousel-loading-wrapper">
+				<span id="jp-carousel-library-loading"><svg class="jetpack-spinner" width="40" height="40" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><circle cx="50" cy="50" r="46" fill="none" stroke="#ddd" stroke-width="8"/><path d="M 50 4 A 46 46 0 0 1 96 50" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" dur="1.4s" from="0 50 50" to="360 50 50" repeatCount="indefinite"/></path></svg></span>
+			</div>
+		</div>
+		<div class="jp-carousel-overlay" style="display: none;">
+
+		<div class="jp-carousel-container">
+			<!-- The Carousel Swiper -->
+			<div
+				class="jp-carousel-wrap swiper jp-carousel-swiper-container jp-carousel-transitions"
+				itemscope
+				itemtype="https://schema.org/ImageGallery">
+				<div class="jp-carousel swiper-wrapper"></div>
+				<div class="jp-swiper-button-prev swiper-button-prev">
+					<svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<mask id="maskPrev" mask-type="alpha" maskUnits="userSpaceOnUse" x="8" y="6" width="9" height="12">
+							<path d="M16.2072 16.59L11.6496 12L16.2072 7.41L14.8041 6L8.8335 12L14.8041 18L16.2072 16.59Z" fill="white"/>
+						</mask>
+						<g mask="url(#maskPrev)">
+							<rect x="0.579102" width="23.8823" height="24" fill="#FFFFFF"/>
+						</g>
+					</svg>
+				</div>
+				<div class="jp-swiper-button-next swiper-button-next">
+					<svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<mask id="maskNext" mask-type="alpha" maskUnits="userSpaceOnUse" x="8" y="6" width="8" height="12">
+							<path d="M8.59814 16.59L13.1557 12L8.59814 7.41L10.0012 6L15.9718 12L10.0012 18L8.59814 16.59Z" fill="white"/>
+						</mask>
+						<g mask="url(#maskNext)">
+							<rect x="0.34375" width="23.8822" height="24" fill="#FFFFFF"/>
+						</g>
+					</svg>
+				</div>
+			</div>
+			<!-- The main close buton -->
+			<div class="jp-carousel-close-hint">
+				<svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<mask id="maskClose" mask-type="alpha" maskUnits="userSpaceOnUse" x="5" y="5" width="15" height="14">
+						<path d="M19.3166 6.41L17.9135 5L12.3509 10.59L6.78834 5L5.38525 6.41L10.9478 12L5.38525 17.59L6.78834 19L12.3509 13.41L17.9135 19L19.3166 17.59L13.754 12L19.3166 6.41Z" fill="white"/>
+					</mask>
+					<g mask="url(#maskClose)">
+						<rect x="0.409668" width="23.8823" height="24" fill="#FFFFFF"/>
+					</g>
+				</svg>
+			</div>
+			<!-- Image info, comments and meta -->
+			<div class="jp-carousel-info">
+				<div class="jp-carousel-info-footer">
+					<div class="jp-carousel-pagination-container">
+						<div class="jp-swiper-pagination swiper-pagination"></div>
+						<div class="jp-carousel-pagination"></div>
+					</div>
+					<div class="jp-carousel-photo-title-container">
+						<div class="jp-carousel-photo-caption"></div>
+					</div>
+					<div class="jp-carousel-photo-icons-container">
+						<a href="#" class="jp-carousel-icon-btn jp-carousel-icon-info" aria-label="Toggle photo metadata visibility">
+							<span class="jp-carousel-icon">
+								<svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<mask id="maskInfo" mask-type="alpha" maskUnits="userSpaceOnUse" x="2" y="2" width="21" height="20">
+										<path fill-rule="evenodd" clip-rule="evenodd" d="M12.7537 2C7.26076 2 2.80273 6.48 2.80273 12C2.80273 17.52 7.26076 22 12.7537 22C18.2466 22 22.7046 17.52 22.7046 12C22.7046 6.48 18.2466 2 12.7537 2ZM11.7586 7V9H13.7488V7H11.7586ZM11.7586 11V17H13.7488V11H11.7586ZM4.79292 12C4.79292 16.41 8.36531 20 12.7537 20C17.142 20 20.7144 16.41 20.7144 12C20.7144 7.59 17.142 4 12.7537 4C8.36531 4 4.79292 7.59 4.79292 12Z" fill="white"/>
+									</mask>
+									<g mask="url(#maskInfo)">
+										<rect x="0.8125" width="23.8823" height="24" fill="#FFFFFF"/>
+									</g>
+								</svg>
+							</span>
+						</a>
+											</div>
+				</div>
+				<div class="jp-carousel-info-extra">
+					<div class="jp-carousel-info-content-wrapper">
+						<div class="jp-carousel-photo-title-container">
+							<div class="jp-carousel-photo-title"></div>
+						</div>
+						<div class="jp-carousel-comments-wrapper">
+													</div>
+						<div class="jp-carousel-image-meta">
+							<div class="jp-carousel-title-and-caption">
+								<div class="jp-carousel-photo-info">
+									<div class="jp-carousel-caption" itemprop="caption description"></div>
+								</div>
+
+								<div class="jp-carousel-photo-description"></div>
+							</div>
+							<a class="jp-carousel-image-download" href="#" aria-label="Download image" target="_blank" style="display: none;">
+								<svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<mask id="mask0" mask-type="alpha" maskUnits="userSpaceOnUse" x="3" y="3" width="19" height="18">
+										<path fill-rule="evenodd" clip-rule="evenodd" d="M5.84615 5V19H19.7775V12H21.7677V19C21.7677 20.1 20.8721 21 19.7775 21H5.84615C4.74159 21 3.85596 20.1 3.85596 19V5C3.85596 3.9 4.74159 3 5.84615 3H12.8118V5H5.84615ZM14.802 5V3H21.7677V10H19.7775V6.41L9.99569 16.24L8.59261 14.83L18.3744 5H14.802Z" fill="white"/>
+									</mask>
+									<g mask="url(#mask0)">
+										<rect x="0.870605" width="23.8823" height="24" fill="#FFFFFF"/>
+									</g>
+								</svg>
+								<span class="jp-carousel-download-text"></span>
+							</a>
+							<div class="jp-carousel-image-map" style="display: none;"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		</div>
+				<div id="actionbar" dir="ltr" style="display: none;"
+			class="actnbr-a8c-automattic-2011 actnbr-has-follow actnbr-has-actions">
+		<ul>
+								<li class="actnbr-btn actnbr-hidden">
+								<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path clip-rule="evenodd" d="m4 4.5h12v6.5h1.5v-6.5-1.5h-1.5-12-1.5v1.5 10.5c0 1.1046.89543 2 2 2h7v-1.5h-7c-.27614 0-.5-.2239-.5-.5zm10.5 2h-9v1.5h9zm-5 3h-4v1.5h4zm3.5 1.5h-1v1h1zm-1-1.5h-1.5v1.5 1 1.5h1.5 1 1.5v-1.5-1-1.5h-1.5zm-2.5 2.5h-4v1.5h4zm6.5 1.25h1.5v2.25h2.25v1.5h-2.25v2.25h-1.5v-2.25h-2.25v-1.5h2.25z"  fill-rule="evenodd"></path></svg>
+			<span>Subscribe</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M16 4.5H4V15C4 15.2761 4.22386 15.5 4.5 15.5H11.5V17H4.5C3.39543 17 2.5 16.1046 2.5 15V3H17.5V12.5H16V4.5ZM5.5 6.5H14.5V8H5.5V6.5ZM5.5 9.5H9.5V11H5.5V9.5ZM12 11H13V12H12V11ZM10.5 9.5H14.5V13.5H10.5V9.5ZM5.5 12H9.5V13.5H5.5V12Z" fill="#008A20"></path><path d="M19.5303 15.0303L15.5 19.0605L12.9697 16.5303L14.0303 15.4697L15.5 16.9395L18.4697 13.9697L19.5303 15.0303Z" fill="#008A20"></path></svg>
+			<span>Subscribed</span>
+		</a>
+							<div class="actnbr-popover tip tip-top-left actnbr-notice" id="follow-bubble">
+							<div class="tip-arrow"></div>
+							<div class="tip-inner actnbr-follow-bubble">
+															<ul>
+											<li class="actnbr-sitename">
+			<a href="https://automattic.com">
+				<img loading='lazy' alt='' src='https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=50' srcset='https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=50 1x, https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=75 1.5x, https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=100 2x, https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=150 3x, https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=200 4x' class='avatar avatar-50' height='50' width='50' />				Automattic			</a>
+		</li>
+										<div class="actnbr-message no-display"></div>
+									<form method="post" action="https://subscribe.wordpress.com" accept-charset="utf-8" style="display: none;">
+																						<div class="actnbr-follow-count">Join 11,638 other subscribers</div>
+																					<div>
+										<input type="email" name="email" placeholder="Enter your email address" class="actnbr-email-field" aria-label="Enter your email address" />
+										</div>
+										<input type="hidden" name="action" value="subscribe" />
+										<input type="hidden" name="blog_id" value="54117" />
+										<input type="hidden" name="source" value="https://automattic.com/press/" />
+										<input type="hidden" name="sub-type" value="actionbar-follow" />
+										<input type="hidden" id="_wpnonce" name="_wpnonce" value="896d9f5f4d" />										<div class="actnbr-button-wrap">
+											<button type="submit" value="Sign me up">
+												Sign me up											</button>
+										</div>
+									</form>
+									<li class="actnbr-login-nudge">
+										<div>
+											Already have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fautomattic.com%252Fpress%252F">Log in now.</a>										</div>
+									</li>
+								</ul>
+															</div>
+						</div>
+					</li>
+							<li class="actnbr-ellipsis actnbr-hidden">
+				<svg class="gridicon gridicons-ellipsis" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M7 12c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm12-2c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-7 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2z"/></g></svg>				<div class="actnbr-popover tip tip-top-left actnbr-more">
+					<div class="tip-arrow"></div>
+					<div class="tip-inner">
+						<ul>
+								<li class="actnbr-sitename">
+			<a href="https://automattic.com">
+				<img loading='lazy' alt='' src='https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=50' srcset='https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=50 1x, https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=75 1.5x, https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=100 2x, https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=150 3x, https://automattic.com/wp-content/uploads/2024/11/cropped-automattic-logo-square.png?w=200 4x' class='avatar avatar-50' height='50' width='50' />				Automattic			</a>
+		</li>
+								<li class="actnbr-folded-follow">
+										<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path clip-rule="evenodd" d="m4 4.5h12v6.5h1.5v-6.5-1.5h-1.5-12-1.5v1.5 10.5c0 1.1046.89543 2 2 2h7v-1.5h-7c-.27614 0-.5-.2239-.5-.5zm10.5 2h-9v1.5h9zm-5 3h-4v1.5h4zm3.5 1.5h-1v1h1zm-1-1.5h-1.5v1.5 1 1.5h1.5 1 1.5v-1.5-1-1.5h-1.5zm-2.5 2.5h-4v1.5h4zm6.5 1.25h1.5v2.25h2.25v1.5h-2.25v2.25h-1.5v-2.25h-2.25v-1.5h2.25z"  fill-rule="evenodd"></path></svg>
+			<span>Subscribe</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M16 4.5H4V15C4 15.2761 4.22386 15.5 4.5 15.5H11.5V17H4.5C3.39543 17 2.5 16.1046 2.5 15V3H17.5V12.5H16V4.5ZM5.5 6.5H14.5V8H5.5V6.5ZM5.5 9.5H9.5V11H5.5V9.5ZM12 11H13V12H12V11ZM10.5 9.5H14.5V13.5H10.5V9.5ZM5.5 12H9.5V13.5H5.5V12Z" fill="#008A20"></path><path d="M19.5303 15.0303L15.5 19.0605L12.9697 16.5303L14.0303 15.4697L15.5 16.9395L18.4697 13.9697L19.5303 15.0303Z" fill="#008A20"></path></svg>
+			<span>Subscribed</span>
+		</a>
+								</li>
+														<li class="actnbr-signup"><a href="https://wordpress.com/start/">Sign up</a></li>
+							<li class="actnbr-login"><a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fautomattic.com%252Fpress%252F">Log in</a></li>
+																<li class="actnbr-shortlink">
+										<a href="https://wp.me/Pe4R-b">
+											<span class="actnbr-shortlink__text">Copy shortlink</span>
+											<span class="actnbr-shortlink__icon"><svg class="gridicon gridicons-checkmark" height="16" width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M9 19.414l-6.707-6.707 1.414-1.414L9 16.586 20.293 5.293l1.414 1.414"/></g></svg></span>
+										</a>
+									</li>
+																<li class="flb-report">
+									<a href="https://wordpress.com/abuse/?report_url=https://automattic.com/press/" target="_blank" rel="noopener noreferrer">
+										Report this content									</a>
+								</li>
+															<li class="actnbr-reader">
+									<a href="https://wordpress.com/reader/blogs/54117/posts/11">
+										View post in Reader									</a>
+								</li>
+															<li class="actnbr-subs">
+									<a href="https://subscribe.wordpress.com/">Manage subscriptions</a>
+								</li>
+																<li class="actnbr-fold"><a href="">Collapse this bar</a></li>
+														</ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	
+<script>
+window.addEventListener( "DOMContentLoaded", function( event ) {
+	var link = document.createElement( "link" );
+	link.href = "/wp-content/mu-plugins/actionbar/actionbar.css?v=20250116";
+	link.type = "text/css";
+	link.rel = "stylesheet";
+	document.head.appendChild( link );
+
+	var script = document.createElement( "script" );
+	script.src = "/wp-content/mu-plugins/actionbar/actionbar.js?v=20250204";
+	document.body.appendChild( script );
+} );
+</script>
+
+	<script id="jetpack-carousel-js-extra">/* trimmed 1668 chars for fixture size */</script>
+<script crossorigin='anonymous' type='text/javascript'  src='/wp-content/mu-plugins/jetpack-plugin/moon/_inc/build/carousel/jetpack-carousel.min.js?m=1785223318i'></script>
+<script id="coblocks-loader-js-extra">/* trimmed 650 chars for fixture size */</script>
+<script id="coblocks-loader-js" src="https://automattic.com/wp-content/plugins/coblocks/2.18.1-simple-rev.4/dist/js/coblocks-loader.min.js?m=1681832297i&#038;ver=2.18.1"></script>
+<script id="logo-right-click-js" src="https://automattic.com/wp-content/themes/a8c/automattic-2011/includes/assets/js/logo-right-click.js?m=1770742792i"></script>
+<script crossorigin='anonymous' type='text/javascript'  src='/wp-content/mu-plugins/carousel-wpcom/carousel-wpcom.js?m=1761899756i'></script>
+
+	<script type="text/javascript">/* trimmed 953 chars for fixture size */</script>
+<script src="//stats.wp.com/w.js?69" defer></script> <script type="text/javascript">/* trimmed 673 chars for fixture size */</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<meta id="bilmur" property="bilmur:data" content="" data-provider="wordpress.com" data-service="simple" data-site-tz="Etc/GMT-0" data-custom-props="{&quot;logged_in&quot;:&quot;0&quot;,&quot;wptheme&quot;:&quot;a8c\/automattic-2011&quot;,&quot;wptheme_is_block&quot;:&quot;1&quot;}"   >
+		<script defer src="/wp-content/js/bilmur.min.js?i=17&amp;m=202633"></script> 	</body>
+</html>
+<!--
+	generated 265 seconds ago
+	generated in 0.346 seconds
+	served from batcache in 0.004 seconds
+	expires in 35 seconds
+-->

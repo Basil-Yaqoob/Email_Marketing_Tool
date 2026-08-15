@@ -1,0 +1,20 @@
+<!-- SYNTHETIC FIXTURE — see synthetic/README.md for why.
+
+This one isn't modeling a real page at all: it's a deterministic-filter
+unit fixture. BAD_HINTS is our own denylist, ported from the prototype,
+and this file exists purely to prove it still fires on the exact strings
+it's meant to catch — analytics/vendor placeholder addresses that a naive
+regex would otherwise treat as real contacts. -->
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Vendor noise test page</title></head>
+<body>
+  <main>
+    <p>Error reports go to noreply@sentry.io for triage.</p>
+    <p>Site built on wixpress.com — see admin@wixpress.com for support.</p>
+    <p>Placeholder: someone@example.com and user@yourdomain.com.</p>
+    <img src="team-photo@2x.png" alt="Team photo" />
+    <p>Real contact: hello@riversidebooks.com</p>
+  </main>
+</body>
+</html>
