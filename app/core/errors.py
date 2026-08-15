@@ -62,6 +62,20 @@ class ParseError(ResolverError):
     """Our fault: the page or response shape changed under us."""
 
 
+class RobotsDisallowedError(AppError):
+    """robots.txt disallows fetching this URL for our user agent.
+
+    Raised by app.net.client.HttpClient, not silently skipped — a caller
+    that wants to override site policy must pass respect_robots=False
+    explicitly, per-call. Not legally binding in most places, but ignoring
+    it by default is how a scraper gets IP-banned.
+    """
+
+    def __init__(self, url: str) -> None:
+        super().__init__(f"robots.txt disallows fetching {url}")
+        self.url = url
+
+
 class PolicyBlockedError(AppError):
     """A send was blocked by the compliance engine (CLAUDE.md rule 2.5 territory).
 

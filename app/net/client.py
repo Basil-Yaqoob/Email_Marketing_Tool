@@ -1,0 +1,200 @@
+"""The async HTTP client every resolver from Session 05 onward uses.
+
+Behaviour, in order, for every GET:
+  1. robots.txt check (unless overridden) -> RobotsDisallowedError if blocked
+  2. cache lookup -> return on hit, no network call at all
+  3. rate limiter -> wait for a per-host token and a global concurrency slot
+  4. request with timeout
+  5. retry on 429/5xx/timeout with jittered exponential backoff, max 3 attempts
+  6. 429 honours the Retry-After header instead of the backoff curve
+  7. cache the response
+  8. any other 4xx does not retry -- raises immediately
+
+Identify yourself honestly in the User-Agent. A contactable UA gets you
+unblocked when someone notices unusual traffic; a fake Chrome string gets
+you banned.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import random
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
+from types import TracebackType
+from typing import Self
+from urllib.parse import urlsplit
+
+import httpx
+
+from app.core.errors import RobotsDisallowedError, UpstreamError
+from app.core.logging import get_logger
+from app.net.cache import ResponseCache
+from app.net.ratelimit import RateLimiter
+from app.net.robots import RobotsChecker
+
+log = get_logger(__name__)
+
+MAX_ATTEMPTS = 3
+RETRYABLE_5XX = {500, 502, 503, 504}
+DEFAULT_TIMEOUT_SECONDS = 15.0
+
+SleepFn = Callable[[float], Awaitable[None]]
+
+
+@dataclass(frozen=True, slots=True)
+class Response:
+    status_code: int
+    headers: dict[str, str]
+    body: bytes
+    url: str
+    from_cache: bool = False
+
+    @property
+    def text(self) -> str:
+        return self.body.decode(self._encoding(), errors="replace")
+
+    def _encoding(self) -> str:
+        content_type = self.headers.get("content-type", "")
+        if "charset=" in content_type:
+            return content_type.split("charset=")[-1].split(";")[0].strip()
+        return "utf-8"
+
+
+class HttpClient:
+    def __init__(
+        self,
+        *,
+        cache: ResponseCache,
+        limiter: RateLimiter,
+        robots: RobotsChecker,
+        user_agent: str,
+        timeout: float = DEFAULT_TIMEOUT_SECONDS,
+        sleep: SleepFn | None = None,
+    ) -> None:
+        self._cache = cache
+        self._limiter = limiter
+        self._robots = robots
+        self._user_agent = user_agent
+        self._timeout = timeout
+        # Injectable so tests exercise the real retry/backoff/jitter logic
+        # without actually waiting — see doc/03-TESTING.md: no sleep() in
+        # tests, use fake clocks and injected time.
+        self._sleep: SleepFn = sleep or asyncio.sleep
+        self._client = httpx.AsyncClient(timeout=timeout)
+
+    async def aclose(self) -> None:
+        await self._client.aclose()
+
+    async def __aenter__(self) -> Self:
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        await self.aclose()
+
+    async def get(
+        self,
+        url: str,
+        *,
+        use_cache: bool = True,
+        respect_robots: bool = True,
+        ttl_seconds: float | None = None,
+    ) -> Response:
+        if respect_robots:
+            allowed = await self._robots.allowed(url)
+            if not allowed:
+                raise RobotsDisallowedError(url)
+
+        if use_cache:
+            cached = await self._cache.get("GET", url, ttl_seconds=ttl_seconds)
+            if cached is not None:
+                return Response(
+                    status_code=cached.status_code,
+                    headers=cached.headers,
+                    body=cached.body,
+                    url=url,
+                    from_cache=True,
+                )
+
+        host = urlsplit(url).netloc
+        async with self._limiter.acquire(host):
+            response = await self._fetch_with_retries(url)
+
+        # Always write back, even when use_cache=False: a caller bypassing
+        # the cache to force a fresh fetch still wants later calls to see
+        # the refreshed value, not the stale one bypass skipped past.
+        await self._cache.put(
+            "GET",
+            url,
+            status_code=response.status_code,
+            headers=response.headers,
+            body=response.body,
+        )
+        return response
+
+    async def _fetch_with_retries(self, url: str) -> Response:
+        for attempt in range(1, MAX_ATTEMPTS + 1):
+            is_last = attempt == MAX_ATTEMPTS
+            try:
+                raw = await self._client.get(url, headers={"User-Agent": self._user_agent})
+            except httpx.TimeoutException as exc:
+                if is_last:
+                    raise UpstreamError(
+                        f"timed out fetching {url} after {MAX_ATTEMPTS} attempts"
+                    ) from exc
+                await self._sleep_backoff(attempt)
+                continue
+
+            if raw.status_code == 429:
+                if is_last:
+                    raise UpstreamError(
+                        f"rate limited fetching {url} after {MAX_ATTEMPTS} attempts"
+                    )
+                await self._sleep_retry_after(raw, attempt)
+                continue
+
+            if raw.status_code in RETRYABLE_5XX:
+                if is_last:
+                    raise UpstreamError(
+                        f"{raw.status_code} fetching {url} after {MAX_ATTEMPTS} attempts"
+                    )
+                await self._sleep_backoff(attempt)
+                continue
+
+            if raw.status_code >= 400:
+                # Any other 4xx: our fault or a deliberate block, not a
+                # transient failure. Retrying a 403 just gets the IP
+                # blocked faster.
+                raise UpstreamError(f"{raw.status_code} fetching {url}")
+
+            return Response(
+                status_code=raw.status_code,
+                headers=dict(raw.headers),
+                body=raw.content,
+                url=str(raw.url),
+            )
+
+        # Unreachable: the loop always returns or raises on its last
+        # iteration. Satisfies mypy's "missing return" check.
+        raise UpstreamError(f"gave up fetching {url}")  # pragma: no cover
+
+    async def _sleep_backoff(self, attempt: int) -> None:
+        base = 2 ** (attempt - 1)  # 1, 2, 4, ...
+        jitter = random.uniform(0, base * 0.5)
+        await self._sleep(base + jitter)
+
+    async def _sleep_retry_after(self, response: httpx.Response, attempt: int) -> None:
+        retry_after = response.headers.get("Retry-After")
+        if retry_after is not None:
+            try:
+                delay = float(retry_after)
+            except ValueError:
+                delay = 2 ** (attempt - 1)
+        else:
+            delay = 2 ** (attempt - 1)
+        await self._sleep(delay)
