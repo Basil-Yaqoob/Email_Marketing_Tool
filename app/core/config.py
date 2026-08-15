@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     google_maps_api_key: SecretStr | None = None
     companies_house_api_key: SecretStr | None = None
     opencorporates_api_key: SecretStr | None = None
+    searxng_url: str | None = None
+    brave_search_api_key: SecretStr | None = None
+    serper_api_key: SecretStr | None = None
 
     # --- Tunables with safe defaults ------------------------------------------
     error_rate_threshold: float = Field(0.05, ge=0.0, le=1.0)

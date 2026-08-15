@@ -1,0 +1,54 @@
+[
+  {"company_name": "Aldergate Dental Practice", "results": [
+    {"title": "Priya Patel - Owner - Aldergate Dental Practice | LinkedIn", "url": "https://www.linkedin.com/in/priyapatel1", "snippet": "Owner at Aldergate Dental Practice", "position": 0}
+  ]},
+  {"company_name": "Bellview Motors", "results": [
+    {"title": "Liam O'Connor - CEO - Bellview Motors | LinkedIn", "url": "https://www.linkedin.com/in/liamoconnor", "snippet": "CEO at Bellview Motors", "position": 0}
+  ]},
+  {"company_name": "Cedar House Veterinary Clinic", "results": [
+    {"title": "Mei Ling Wong - Founder - Cedar House Veterinary Clinic | LinkedIn", "url": "https://www.linkedin.com/in/meilingwong", "snippet": "Founder at Cedar House Veterinary Clinic", "position": 0}
+  ]},
+  {"company_name": "Dunmore Physiotherapy", "results": [
+    {"title": "Katarzyna Nowak – Owner – Dunmore Physiotherapy - LinkedIn", "url": "https://www.linkedin.com/in/knowak", "snippet": "Owner at Dunmore Physiotherapy", "position": 0}
+  ]},
+  {"company_name": "Elmfield Accountants", "results": [
+    {"title": "Arjun Singh - Managing Director - Elmfield Accountants | LinkedIn", "url": "https://www.linkedin.com/in/arjunsingh", "snippet": "Managing Director at Elmfield Accountants", "position": 0}
+  ]},
+  {"company_name": "Fenwick Legal Partners", "results": [
+    {"title": "Aoife Murphy – Founder – Fenwick Legal Partners - LinkedIn", "url": "https://www.linkedin.com/in/aoifemurphy", "snippet": "Founder at Fenwick Legal Partners", "position": 0}
+  ]},
+  {"company_name": "Grantham Building Services", "results": [
+    {"title": "Peter Szabo - Owner - Grantham Building Services | LinkedIn", "url": "https://www.linkedin.com/in/petszabo", "snippet": "Owner at Grantham Building Services", "position": 0}
+  ]},
+  {"company_name": "Hazelmere Opticians", "results": [
+    {"title": "Fatima Ibrahim - CEO - Hazelmere Opticians | LinkedIn", "url": "https://www.linkedin.com/in/fatimaibrahim", "snippet": "CEO at Hazelmere Opticians", "position": 0}
+  ]},
+  {"company_name": "Ironbridge Consulting", "results": [
+    {"title": "Ironbridge Consulting | Oliver Bennett | LinkedIn", "url": "https://www.linkedin.com/in/oliverbennett", "snippet": "Owner at Ironbridge Consulting", "position": 0}
+  ]},
+  {"company_name": "Juniper Marketing Group", "results": [
+    {"title": "Giulia Rossi | Juniper Marketing Group | LinkedIn", "url": "https://www.linkedin.com/in/giuliarossi", "snippet": "Founder at Juniper Marketing Group", "position": 0}
+  ]},
+  {"company_name": "Kingsmead Dental Studio", "results": [
+    {"title": "Ngozi Okafor - Owner - Kingsmead Dental Studio | LinkedIn", "url": "https://www.linkedin.com/in/ngoziokafor", "snippet": "Owner at Kingsmead Dental Studio", "position": 0}
+  ]},
+  {"company_name": "Lansdown Financial Advisers", "results": [
+    {"title": "Ciara Walsh – Managing Director – Lansdown Financial Advisers - LinkedIn", "url": "https://www.linkedin.com/in/ciarawalsh", "snippet": "Managing Director at Lansdown Financial Advisers", "position": 0}
+  ]},
+  {"company_name": "Millbrook Fitness Studio", "results": [
+    {"title": "Haruto Tanaka - Founder - Millbrook Fitness Studio | LinkedIn", "url": "https://www.linkedin.com/in/harutotanaka", "snippet": "Founder at Millbrook Fitness Studio", "position": 0}
+  ]},
+  {"company_name": "Northfield Osteopathy", "results": [
+    {"title": "John Doe - Owner - Riverside Medical Centre | LinkedIn", "url": "https://www.linkedin.com/in/johndoe", "snippet": "Owner at a completely different, unrelated business.", "position": 0}
+  ]},
+  {"company_name": "Orchard Lane Nursery", "results": [
+    {"title": "Best Nurseries in the Area - Local Guide", "url": "https://localguide.example.test/nurseries", "snippet": "A roundup article, not a LinkedIn profile.", "position": 0}
+  ]},
+  {"company_name": "Pinewood Architects", "results": []},
+  {"company_name": "Quayside Logistics", "results": []},
+  {"company_name": "Redcliffe Media", "results": []},
+  {"company_name": "Sundale Care Home", "results": []},
+  {"company_name": "Trafalgar Imports", "results": [
+    {"title": "Sean Fitzgerald - Owner - Trafalgar Imports | LinkedIn", "url": "https://www.linkedin.com/in/seanfitzgerald", "snippet": "Owner at Trafalgar Imports", "position": 0}
+  ]}
+]
