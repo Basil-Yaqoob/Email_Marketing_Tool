@@ -9,6 +9,8 @@ a hardcoded fallback string.
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -34,6 +36,15 @@ class Settings(BaseSettings):
     searxng_url: str | None = None
     brave_search_api_key: SecretStr | None = None
     serper_api_key: SecretStr | None = None
+
+    # --- LLM routing and budget (Session 11) ----------------------------------
+    # Per-task model overrides as JSON, e.g.
+    #   LLM_MODEL_OVERRIDES={"copy": "anthropic/claude-opus-5"}
+    # Keys are Task values; anything unset falls back to app/llm/routing.py.
+    llm_model_overrides: dict[str, str] = Field(default_factory=dict)
+    # Per-campaign LLM spend cap. None means uncapped — a deliberate opt-in,
+    # since a cap that silently defaults to some number is its own surprise.
+    llm_spend_cap_usd: Decimal | None = None
 
     # --- Tunables with safe defaults ------------------------------------------
     error_rate_threshold: float = Field(0.05, ge=0.0, le=1.0)

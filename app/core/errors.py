@@ -62,6 +62,48 @@ class ParseError(ResolverError):
     """Our fault: the page or response shape changed under us."""
 
 
+class LLMError(AppError):
+    """Base for failures in the LLM gateway."""
+
+
+class SchemaValidationError(LLMError):
+    """The model's output did not satisfy the requested schema, and the
+    self-correcting retry did not fix it.
+
+    Raised, never softened into a partial object or a None. CLAUDE.md rule
+    2.1: a stage that cannot do its job raises. A half-parsed strategy
+    object silently missing its `angle` field is exactly the kind of
+    degraded output that produces confidently wrong copy downstream.
+    """
+
+
+class ContentRefusalError(LLMError):
+    """The model declined to answer.
+
+    Distinct from a transport failure and deliberately **never retried**:
+    the same prompt will be refused again, so retrying only burns tokens
+    and time. This is a prompt problem for a human to look at.
+    """
+
+
+class ModelNotFoundError(LLMError):
+    """The configured model id does not exist at the provider.
+
+    OpenRouter deprecates and renames model ids regularly, and the failure
+    arrives as a generic 404. Naming it explicitly is the difference
+    between "your config points at a retired model" and an hour of
+    debugging a network error that isn't one.
+    """
+
+
+class NoProviderConfiguredError(LLMError):
+    """No provider key is configured, so nothing can serve this call.
+
+    Providers whose key is absent are simply not registered (see
+    app/llm/providers/registry.py). Reaching this means *none* were.
+    """
+
+
 class VerificationError(AppError):
     """A verification check could not be completed — OUR failure, never a
     lead's answer.
