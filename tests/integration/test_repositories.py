@@ -33,6 +33,12 @@ from app.db.models.fact import Fact
 from app.db.models.resolver_run import ResolverRun
 from app.db.repositories.domain_pattern_repository import DomainPatternRepository
 from app.db.repositories.fact_repository import FactCreate, FactRepository
+from app.resolvers.email.learning import (
+    SOURCE_WEIGHTS,
+    ConfirmationSource,
+    learn_from_confirmed,
+)
+from app.resolvers.email.patterns import KnownPattern, generate
 
 pytestmark = pytest.mark.asyncio
 
@@ -267,6 +273,63 @@ async def test_domain_pattern_conflict_keeps_higher_count(db_session: AsyncSessi
 
     assert conflicting.pattern == "{first}.{last}"
     assert conflicting.confirmed_count == 3
+
+
+async def test_domain_pattern_get_reads_back_what_learn_wrote(db_session: AsyncSession) -> None:
+    repo = DomainPatternRepository(db_session)
+    domain = f"{uuid.uuid4().hex[:8]}.example.com"
+
+    await repo.learn(domain, "{f}{last}")
+    fetched = await repo.get(domain)
+
+    assert fetched is not None
+    assert fetched.pattern == "{f}{last}"
+    assert fetched.confirmed_count == 1
+
+
+async def test_weak_observation_cannot_flip_an_established_pattern(
+    db_session: AsyncSession,
+) -> None:
+    """The other half of the guard: a single website mention must never
+    displace a pattern a reply already confirmed.
+    """
+    repo = DomainPatternRepository(db_session)
+    domain = f"{uuid.uuid4().hex[:8]}.example.com"
+
+    await repo.learn(domain, "{first}.{last}", weight=SOURCE_WEIGHTS[ConfirmationSource.REPLY])
+    unchanged = await repo.learn(
+        domain, "{f}{last}", weight=SOURCE_WEIGHTS[ConfirmationSource.WEBSITE]
+    )
+
+    assert unchanged.pattern == "{first}.{last}"
+    assert unchanged.confirmed_count == 3
+
+
+async def test_learning_pipeline_end_to_end(db_session: AsyncSession) -> None:
+    """A confirmed address goes in; the next person at that domain comes
+    out as a single generated candidate instead of ten guesses.
+    """
+    repo = DomainPatternRepository(db_session)
+    domain = f"{uuid.uuid4().hex[:8]}.example.com"
+
+    learned = learn_from_confirmed(f"sarah.chen@{domain}", "Sarah Chen")
+    assert learned is not None
+    await repo.learn(learned.domain, learned.pattern, weight=learned.weight)
+    await repo.learn(learned.domain, learned.pattern, weight=learned.weight)
+
+    row = await repo.get(domain)
+    assert row is not None
+
+    blind = generate("Michael", "Torres", domain)
+    targeted = generate(
+        "Michael",
+        "Torres",
+        domain,
+        known=KnownPattern(row.pattern, row.confirmed_count),
+    )
+
+    assert len(blind) > 1
+    assert [c.value for c in targeted] == [f"michael.torres@{domain}"]
 
 
 # --------------------------------------------------------------------------

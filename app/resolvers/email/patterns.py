@@ -76,7 +76,15 @@ INDUSTRY_PATTERNS: tuple[Pattern, ...] = (
     Pattern("dr.{last}", 0.01, industries=HEALTHCARE_INDUSTRIES),
 )
 
-ALL_PATTERNS: tuple[Pattern, ...] = PATTERNS + INDUSTRY_PATTERNS
+# Sorted by prior, so an industry pattern competes on its real frequency
+# rather than being exiled behind every generic one. "dr{last}" (~0.02 in
+# healthcare) belongs alongside "{last}" and "{first}-{last}", not after
+# the 0.01 tail — otherwise it falls outside MAX_BLIND_GUESSES and the
+# industry scoping silently does nothing. Python's sort is stable, so
+# equal priors keep their declared order.
+ALL_PATTERNS: tuple[Pattern, ...] = tuple(
+    sorted(PATTERNS + INDUSTRY_PATTERNS, key=lambda p: p.prior, reverse=True)
+)
 
 # German convention is ue, not u: "Müller" is "mueller@" at essentially
 # every German company, never "muller@". Applied before generic accent

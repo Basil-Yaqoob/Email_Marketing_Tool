@@ -356,3 +356,71 @@ async def test_resolver_not_applicable_without_person_name() -> None:
     resolver = PatternEmailResolver(store=_FakeStore())
     ctx = _ctx(person_name=None)
     assert await resolver.applicable(ctx) is False
+
+
+# --------------------------------------------------------------------------
+# Regression guards added after the initial session.
+# --------------------------------------------------------------------------
+
+
+async def test_industry_pattern_reaches_the_default_guess_budget() -> None:
+    """test_healthcare_extras_not_applied_to_other_industries proves the
+    *scoping* works, but it passes limit=99 — which hid a real bug: with
+    industry patterns simply appended after the generic ones, "dr{last}"
+    sat at index 11 of 13, past MAX_BLIND_GUESSES, so at the real default
+    budget it was never generated and healthcare scoping did nothing in
+    production. Ordering ALL_PATTERNS by prior fixes it; this test is what
+    stops it regressing, by going through the resolver (which sets no
+    limit) rather than calling generate() with an inflated one.
+    """
+    resolver = PatternEmailResolver(store=_FakeStore())
+
+    dental = await resolver.resolve(_ctx(known_facts={"industry": "dental"}))
+    generic = await resolver.resolve(_ctx())
+
+    assert "dr{last}" in {c.extra["pattern"] for c in dental}
+    assert "dr{last}" not in {c.extra["pattern"] for c in generic}
+    assert "drchen@northgatedental.com" in {c.value for c in dental}
+
+
+def test_generation_and_learning_round_trip() -> None:
+    """Anything generate() produces, learning must either explain with the
+    exact pattern that produced it or refuse as ambiguous — it must never
+    learn a *different* pattern than the one that built the address, or a
+    verified guess would teach the domain the wrong format.
+    """
+    for candidate in generate("Sarah", "Chen", "acme.com"):
+        learned = learn_from_confirmed(candidate.value, "Sarah Chen")
+        if learned is not None:
+            assert learned.pattern == candidate.pattern
+
+
+def test_configured_send_threshold_still_exceeds_generated_confidence() -> None:
+    """The "generated != verified" rule is only real if the actual
+    configured threshold stays above the highest confidence this module
+    can emit. Pins the two together so neither drifts alone.
+    """
+    from app.core.config import Settings
+
+    settings = Settings(
+        database_url="postgresql+asyncpg://u:p@localhost/db",
+        redis_url="redis://localhost:6379/0",
+        secret_key="test-secret",
+    )
+    assert settings.confidence_threshold > CONF_KNOWN_CONFIRMED
+
+
+def test_learning_is_case_insensitive() -> None:
+    learned = learn_from_confirmed("Sarah.Chen@Northgate.com", "Sarah Chen")
+    assert learned is not None
+    assert learned.pattern == "{first}.{last}"
+    assert learned.domain == "northgate.com"
+
+
+def test_learns_from_accented_and_umlaut_names() -> None:
+    """Learning has to normalise exactly the way generation does, or a
+    confirmed German address teaches the system nothing.
+    """
+    learned = learn_from_confirmed("juergen.mueller@beispiel.de", "Jürgen Müller")
+    assert learned is not None
+    assert learned.pattern == "{first}.{last}"
