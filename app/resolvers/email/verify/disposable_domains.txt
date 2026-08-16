@@ -1,0 +1,49 @@
+# Disposable / throwaway email domains.
+#
+# Bundled so rung 1 works offline and deterministically. This is a small
+# high-confidence core list, not an exhaustive one — the exhaustive lists
+# churn constantly and are better refreshed by a script into this file
+# than vendored wholesale and left to rot.
+#
+# Refresh: scripts/refresh_disposable_domains.py (not yet written — see
+# doc/02-ROADMAP.md Discovered work).
+#
+# One domain per line, lowercase. Blank lines and # comments ignored.
+
+10minutemail.com
+20minutemail.com
+33mail.com
+guerrillamail.com
+guerrillamail.net
+guerrillamail.org
+sharklasers.com
+grr.la
+mailinator.com
+mailinator.net
+maildrop.cc
+temp-mail.org
+tempmail.com
+tempmailo.com
+throwawaymail.com
+yopmail.com
+yopmail.fr
+yopmail.net
+getnada.com
+nada.email
+dispostable.com
+fakeinbox.com
+trashmail.com
+trashmail.de
+mytrashmail.com
+spamgourmet.com
+mailnesia.com
+tempinbox.com
+emailondeck.com
+moakt.com
+tempr.email
+discard.email
+mail-temporaire.fr
+jetable.org
+spam4.me
+inboxbear.com
+mohmal.com

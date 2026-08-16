@@ -62,6 +62,23 @@ class ParseError(ResolverError):
     """Our fault: the page or response shape changed under us."""
 
 
+class VerificationError(AppError):
+    """A verification check could not be completed — OUR failure, never a
+    lead's answer.
+
+    This exception is the entire fix for the prototype's worst bug. That
+    code caught a failing vendor call with `except Exception`, returned
+    the string "error", and wrote it to the lead as if it were a
+    verification result — 1,640 times, then exited 0.
+
+    Here the failure has nowhere to hide: there is no ERROR member of
+    VerifyStatus (app/db/models/enums.py) for it to be written as, so a
+    system failure can only propagate as this exception. The batch runner
+    counts these and aborts past a threshold; it never converts one into
+    an outcome.
+    """
+
+
 class RobotsDisallowedError(AppError):
     """robots.txt disallows fetching this URL for our user agent.
 

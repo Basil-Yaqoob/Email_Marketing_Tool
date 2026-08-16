@@ -25,6 +25,11 @@ dependencies = [
     "playwright>=1.49",
     "beautifulsoup4>=4.12",
     "lxml>=5.3",
+    # Session 10: MX lookup is rung 2 of the verification ladder, and
+    # provider detection from MX hosts is what decides whether an SMTP
+    # probe can work at all. dnspython is the only serious async DNS
+    # client for Python; writing a resolver is firmly out of scope.
+    "dnspython>=2.7",
 ]
 
 [dependency-groups]
