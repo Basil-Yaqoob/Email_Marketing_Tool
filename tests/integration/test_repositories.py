@@ -19,6 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agents.copy.types import MessageResult
 from app.agents.hooks.types import HookResult
 from app.core.config import Settings
 from app.db.models.campaign import Campaign
@@ -30,16 +31,20 @@ from app.db.models.enums import (
     HookConfidenceLevel,
     HookNewsType,
     HookVerdict,
+    MessageStatus,
     ResolverOutcome,
     SubjectType,
     VerifyStatus,
 )
 from app.db.models.fact import Fact
 from app.db.models.hook import Hook
+from app.db.models.message import Message
+from app.db.models.person import Person
 from app.db.models.resolver_run import ResolverRun
 from app.db.repositories.domain_pattern_repository import DomainPatternRepository
 from app.db.repositories.fact_repository import FactCreate, FactRepository
 from app.db.repositories.hook_repository import HookRepository
+from app.db.repositories.message_repository import MessageRepository
 from app.resolvers.email.learning import (
     SOURCE_WEIGHTS,
     ConfirmationSource,
@@ -563,3 +568,90 @@ async def test_hook_repository_saves_a_blank_with_a_reason(db_session: AsyncSess
     # A blank must never be silent -- CLAUDE.md's whole "fail loud" ethos
     # applied to this table's one nullable-looking row.
     assert fetched.notes != ""
+
+
+# --------------------------------------------------------------------------
+# messages: Session 13's drafted emails round-trip, review data and all.
+# --------------------------------------------------------------------------
+
+
+def _message_result(**overrides: object) -> MessageResult:
+    defaults: dict[str, object] = {
+        "angle": "missed_call",
+        "subject": "your saturday callers",
+        "body": "Jane,\n\nSaturday callers keep hitting voicemail.\n\nAlex Rivera\nFerrylane\n",
+        "passed": True,
+        "score": 9,
+        "strategy": {"opener_type": "review_quote", "quote_verdict": "usable_complaint"},
+        "critique": {"score": 9, "passes": True, "fabrications": []},
+        "scan": {"clean": True, "hard_failures": [], "soft_warnings": [], "body_words": 70},
+        "attempts": [{"attempt": 1, "score": 9, "passed": True}],
+        "model": "anthropic/claude-sonnet-5",
+        "cost_usd": 0.0123,
+    }
+    defaults.update(overrides)
+    return MessageResult(**defaults)  # type: ignore[arg-type]
+
+
+async def test_message_repository_saves_a_passed_draft(db_session: AsyncSession) -> None:
+    campaign = Campaign(name="test campaign", icp={}, status=CampaignStatus.DRAFT)
+    db_session.add(campaign)
+    await db_session.flush()
+    company = Company(campaign_id=campaign.id, name="Riverside Dental", country_code="US")
+    db_session.add(company)
+    await db_session.flush()
+    person = Person(company_id=company.id, full_name="Jane Doe")
+    db_session.add(person)
+    await db_session.flush()
+
+    repo = MessageRepository(db_session)
+    result = _message_result()
+
+    row = await repo.save(company.id, person.id, result)
+
+    fetched = await db_session.get(Message, row.id)
+    assert fetched is not None
+    assert fetched.company_id == company.id
+    assert fetched.person_id == person.id
+    assert fetched.angle == "missed_call"
+    assert fetched.subject == result.subject
+    assert fetched.body == result.body
+    # Every freshly written message is a draft regardless of whether the
+    # pipeline's own gate passed it -- review/approval is Session 21's job.
+    assert fetched.status == MessageStatus.DRAFT
+    assert fetched.quality_report["passed"] is True
+    assert fetched.quality_report["score"] == 9
+    assert fetched.quality_report["critique"]["fabrications"] == []
+
+
+async def test_message_repository_saves_a_failed_draft_without_withholding_it(
+    db_session: AsyncSession,
+) -> None:
+    """A draft that never passed the pipeline's gate still gets a row --
+    the review queue (Session 21) is what decides what happens next, not
+    this repository.
+    """
+    campaign = Campaign(name="test campaign", icp={}, status=CampaignStatus.DRAFT)
+    db_session.add(campaign)
+    await db_session.flush()
+    company = Company(campaign_id=campaign.id, name="Quiet Clinic", country_code="US")
+    db_session.add(company)
+    await db_session.flush()
+
+    repo = MessageRepository(db_session)
+    result = _message_result(
+        passed=False,
+        score=5,
+        critique={"score": 5, "passes": False, "fabrications": ["invented a 40% claim"]},
+        scan={"clean": False, "hard_failures": ["2 exclamation mark(s)"], "soft_warnings": []},
+    )
+
+    row = await repo.save(company.id, None, result)
+
+    fetched = await db_session.get(Message, row.id)
+    assert fetched is not None
+    assert fetched.person_id is None
+    assert fetched.status == MessageStatus.DRAFT
+    assert fetched.quality_report["passed"] is False
+    assert fetched.quality_report["critique"]["fabrications"] == ["invented a 40% claim"]
+    assert fetched.quality_report["scan"]["hard_failures"] == ["2 exclamation mark(s)"]

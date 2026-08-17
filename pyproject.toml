@@ -67,6 +67,16 @@ extend-select = ["BLE"]
 # a markdown table or the labelled-output block to fit 100 columns would
 # be editing prompt text that was reached by measurement, not guesswork.
 "app/agents/hooks/prompts.py" = ["E501"]
+# Same rationale, Session 13: `email_writer/prompts.py` ported verbatim
+# ("Port the prompts verbatim. They are the product." -- the plan's own
+# Gotchas section).
+"app/agents/copy/prompts.py" = ["E501"]
+# The deterministic scanner's banned-word/phrase lists and regexes are
+# ported verbatim from `email_writer/quality.py` for the same reason.
+# RUF001 also ignored here: the module's whole job is recognising smart
+# quotes/dashes, so its literals are unavoidably full of the exact
+# characters the rule flags as "ambiguous".
+"app/agents/copy/quality.py" = ["E501", "RUF001"]
 
 [tool.mypy]
 python_version = "3.12"
