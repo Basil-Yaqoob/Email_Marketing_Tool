@@ -11,6 +11,10 @@ from app.db.models.domain_pattern import DomainPattern
 from app.db.models.email import EmailAddress
 from app.db.models.enums import (
     CampaignStatus,
+    HookChannel,
+    HookConfidenceLevel,
+    HookNewsType,
+    HookVerdict,
     MailboxProvider,
     MessageStatus,
     ReplyClassification,
@@ -41,6 +45,10 @@ __all__ = [
     "EmailAddress",
     "Fact",
     "Hook",
+    "HookChannel",
+    "HookConfidenceLevel",
+    "HookNewsType",
+    "HookVerdict",
     "Mailbox",
     "MailboxProvider",
     "Message",

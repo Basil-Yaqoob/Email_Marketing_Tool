@@ -121,3 +121,51 @@ class SeedPlacement(enum.StrEnum):
     SPAM = "spam"
     NOT_FOUND = "not_found"
     UNKNOWN = "unknown"
+
+
+class HookVerdict(enum.StrEnum):
+    """The hook-mining agent's own top-level answer (Session 12).
+
+    NONE_FOUND is a first-class, common outcome, not a failure — ported
+    from recent_news_agent's exact philosophy: roughly 4-9 hooks out of
+    every 17 clean leads, and a forced hook is worse than a blank one.
+    """
+
+    FOUND = "found"
+    NONE_FOUND = "none_found"
+
+
+class HookNewsType(enum.StrEnum):
+    NEW_LOCATION = "new_location"
+    AWARD = "award"
+    ANNIVERSARY = "anniversary"
+    NEW_HIRE = "new_hire"
+    # A live vacancy the company is advertising, distinct from NEW_HIRE
+    # (someone who has already joined).
+    HIRING = "hiring"
+    EXPANDED_HOURS = "expanded_hours"
+    PROMO = "promo"
+    PRESS = "press"
+    OTHER = "other"
+    NONE = "none"
+
+
+class HookChannel(enum.StrEnum):
+    WEBSITE = "website"
+    INSTAGRAM = "instagram"
+    FACEBOOK = "facebook"
+    LINKEDIN = "linkedin"
+    PRESS = "press"
+    DIRECTORY = "directory"
+    OTHER = "other"
+    NONE = "none"
+
+
+class HookConfidenceLevel(enum.StrEnum):
+    """The research model's own self-rating of the hook it found — not to
+    be confused with Fact.confidence's numeric 0-1 scale used elsewhere.
+    """
+
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"

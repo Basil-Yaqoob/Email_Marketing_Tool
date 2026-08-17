@@ -43,6 +43,7 @@ from app.core.errors import (
     NoProviderConfiguredError,
     RateLimitedError,
     SchemaValidationError,
+    ToolLoopExhaustedError,
     UpstreamError,
 )
 from app.core.logging import get_logger
@@ -260,8 +261,11 @@ class LLMGateway:
             rounds += 1
             if rounds > MAX_TOOL_ROUNDS:
                 # A model that keeps calling tools forever is a runaway
-                # bill, not a slow answer. Bound it and say so.
-                raise LLMError(
+                # bill, not a slow answer. Bound it and say so. Raised as
+                # the narrower ToolLoopExhaustedError (an LLMError) so a
+                # caller for whom exhausting the budget is a legitimate
+                # outcome, not a system failure, can catch it specifically.
+                raise ToolLoopExhaustedError(
                     f"tool-use loop exceeded {MAX_TOOL_ROUNDS} rounds for {model} — "
                     "aborting to prevent a runaway"
                 )

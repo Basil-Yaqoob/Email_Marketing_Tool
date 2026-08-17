@@ -10,7 +10,7 @@ the constraints CLAUDE.md calls out (country_code NOT NULL, confidence in
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import asyncpg
@@ -19,20 +19,27 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agents.hooks.types import HookResult
 from app.core.config import Settings
 from app.db.models.campaign import Campaign
 from app.db.models.company import Company
 from app.db.models.email import EmailAddress
 from app.db.models.enums import (
     CampaignStatus,
+    HookChannel,
+    HookConfidenceLevel,
+    HookNewsType,
+    HookVerdict,
     ResolverOutcome,
     SubjectType,
     VerifyStatus,
 )
 from app.db.models.fact import Fact
+from app.db.models.hook import Hook
 from app.db.models.resolver_run import ResolverRun
 from app.db.repositories.domain_pattern_repository import DomainPatternRepository
 from app.db.repositories.fact_repository import FactCreate, FactRepository
+from app.db.repositories.hook_repository import HookRepository
 from app.resolvers.email.learning import (
     SOURCE_WEIGHTS,
     ConfirmationSource,
@@ -480,3 +487,79 @@ async def test_email_unknown_is_a_valid_status(db_session: AsyncSession) -> None
     fetched = await db_session.get(EmailAddress, email.id)
     assert fetched is not None
     assert fetched.verify_status == VerifyStatus.UNKNOWN
+
+
+# --------------------------------------------------------------------------
+# hooks: Session 12's extended columns actually round-trip through Postgres.
+# --------------------------------------------------------------------------
+
+
+async def test_hook_repository_saves_a_found_hook(db_session: AsyncSession) -> None:
+    campaign = Campaign(name="test campaign", icp={}, status=CampaignStatus.DRAFT)
+    db_session.add(campaign)
+    await db_session.flush()
+    company = Company(campaign_id=campaign.id, name="Northgate Dental", country_code="US")
+    db_session.add(company)
+    await db_session.flush()
+
+    repo = HookRepository(db_session)
+    result = HookResult(
+        status=HookVerdict.FOUND,
+        hook_text="Northgate Dental opened a second location in Austin this March.",
+        source_url="https://example.test/press/northgate-expands",
+        event_date=date(2026, 3, 1),
+        news_type=HookNewsType.NEW_LOCATION,
+        channel=HookChannel.PRESS,
+        confidence=HookConfidenceLevel.HIGH,
+        swap_test_passed=True,
+        needs_review=False,
+        notes="",
+        transcript="VERDICT: found\n...",
+        model="deepseek/deepseek-v4-flash",
+        cost_usd=0.031,
+    )
+
+    row = await repo.save(company.id, result)
+
+    fetched = await db_session.get(Hook, row.id)
+    assert fetched is not None
+    assert fetched.status == HookVerdict.FOUND
+    assert fetched.hook_text == result.hook_text
+    assert fetched.source_url == result.source_url
+    assert fetched.event_date == date(2026, 3, 1)
+    assert fetched.swap_test_passed is True
+    assert fetched.cost_usd == pytest.approx(0.031)
+
+
+async def test_hook_repository_saves_a_blank_with_a_reason(db_session: AsyncSession) -> None:
+    campaign = Campaign(name="test campaign", icp={}, status=CampaignStatus.DRAFT)
+    db_session.add(campaign)
+    await db_session.flush()
+    company = Company(campaign_id=campaign.id, name="Quiet Clinic", country_code="US")
+    db_session.add(company)
+    await db_session.flush()
+
+    repo = HookRepository(db_session)
+    result = HookResult(
+        status=HookVerdict.NONE_FOUND,
+        hook_text=None,
+        source_url=None,
+        event_date=None,
+        news_type=HookNewsType.NONE,
+        channel=HookChannel.NONE,
+        confidence=HookConfidenceLevel.LOW,
+        swap_test_passed=False,
+        needs_review=False,
+        notes="no item cleared the CURRENT bar -- most recent find was 18 months old",
+    )
+
+    row = await repo.save(company.id, result)
+
+    fetched = await db_session.get(Hook, row.id)
+    assert fetched is not None
+    assert fetched.status == HookVerdict.NONE_FOUND
+    assert fetched.hook_text is None
+    assert fetched.source_url is None
+    # A blank must never be silent -- CLAUDE.md's whole "fail loud" ethos
+    # applied to this table's one nullable-looking row.
+    assert fetched.notes != ""

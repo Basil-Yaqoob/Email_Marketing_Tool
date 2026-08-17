@@ -61,6 +61,13 @@ select = ["E", "F", "I", "N", "UP", "B", "A", "C4", "PT", "SIM", "RUF"]
 # BLE001 = blind except. This project bans it; see CLAUDE.md rule 2.1.
 extend-select = ["BLE"]
 
+[tool.ruff.lint.per-file-ignores]
+# These prompt strings are ported verbatim from recent_news_agent per
+# Session 12's plan ("do not paraphrase them from memory") -- reformatting
+# a markdown table or the labelled-output block to fit 100 columns would
+# be editing prompt text that was reached by measurement, not guesswork.
+"app/agents/hooks/prompts.py" = ["E501"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true

@@ -104,6 +104,19 @@ class NoProviderConfiguredError(LLMError):
     """
 
 
+class ToolLoopExhaustedError(LLMError):
+    """A tool-using loop hit MAX_TOOL_ROUNDS without concluding.
+
+    Distinct from a generic LLMError specifically so a caller for whom
+    "ran out of budget" is a legitimate, expected outcome — not a system
+    failure — can catch it narrowly. The hook-mining agent (Session 12)
+    is exactly this: a dry lead can burn the whole tool budget proving a
+    negative, and that must resolve to a documented none_found, not
+    propagate as an error. A caller that genuinely wants a runaway loop
+    to fail the batch still can, since this is still an LLMError.
+    """
+
+
 class VerificationError(AppError):
     """A verification check could not be completed — OUR failure, never a
     lead's answer.
