@@ -37,10 +37,25 @@ class Settings(BaseSettings):
     brave_search_api_key: SecretStr | None = None
     serper_api_key: SecretStr | None = None
 
-    # Bearer token for the REST API (Session 20). None means the API is
-    # unsecured and refuses to serve, rather than silently accepting any
-    # request -- see app/api/auth.py.
+    # Bearer token for the REST API (Session 20) and the MCP server's
+    # Streamable HTTP transport (Session 23) -- one token, two callers.
+    # None means neither surface is secured, so both refuse to serve rather
+    # than silently accepting any request.
     api_token: SecretStr | None = None
+
+    # --- Optional: MCP connectors (Session 22) --------------------------------
+    # Apollo and Clay's official MCP servers, wired in as METERED resolvers.
+    # URLs default to the vendors' published endpoints (not secrets); the
+    # credentials that authenticate against them are.
+    apollo_mcp_url: str = "https://mcp.apollo.io/mcp"
+    apollo_oauth_client_id: SecretStr | None = None
+    apollo_oauth_client_secret: SecretStr | None = None
+    clay_mcp_url: str | None = None
+    clay_api_key: SecretStr | None = None
+    # Per-campaign cap across all metered MCP resolvers combined. None means
+    # MCP resolvers are never registered at all -- see app/mcp/servers --
+    # matching llm_spend_cap_usd's "no silent default" reasoning above.
+    mcp_spend_cap_usd: Decimal | None = None
 
     # --- LLM routing and budget (Session 11) ----------------------------------
     # Per-task model overrides as JSON, e.g.
