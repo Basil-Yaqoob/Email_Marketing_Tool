@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Email Marketing Tool{% endblock %}</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --fg: #1a1a1a;
+            --border: #e0e0e0;
+            --accent: #0066cc;
+            --semantic-good: #22c55e;
+            --semantic-warn: #eab308;
+            --semantic-critical: #ef4444;
+            --tabular-nums: 'Courier New', monospace;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --bg: #1a1a1a;
+                --fg: #ffffff;
+                --border: #333333;
+                --accent: #3b82f6;
+            }
+        }
+
+        :root[data-theme="dark"] {
+            --bg: #1a1a1a;
+            --fg: #ffffff;
+            --border: #333333;
+            --accent: #3b82f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--fg);
+            padding: 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-left: 4px solid var(--semantic-critical);
+            background: rgba(239, 68, 68, 0.1);
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+
+        .alert.warning {
+            border-left-color: var(--semantic-warn);
+            background: rgba(234, 179, 8, 0.1);
+        }
+
+        .alert.info {
+            border-left-color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-weight: 600;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        tr:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-badge.success {
+            background: var(--semantic-good);
+            color: white;
+        }
+
+        .status-badge.warning {
+            background: var(--semantic-warn);
+            color: black;
+        }
+
+        .status-badge.error {
+            background: var(--semantic-critical);
+            color: white;
+        }
+
+        .status-badge.neutral {
+            background: var(--border);
+            color: var(--fg);
+        }
+
+        button, [type="submit"] {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        button:hover, [type="submit"]:hover {
+            opacity: 0.9;
+        }
+
+        button:focus, [type="submit"]:focus, a:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #666;
+        }
+
+        .empty-state h2 {
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .empty-state p {
+            margin-bottom: 1rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .provenance {
+            font-size: 0.875rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .provenance a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .provenance a:hover {
+            text-decoration: underline;
+        }
+
+        .htmx-request.htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: inline; }
+        .htmx-request.htmx-indicator { display: inline; }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Email Marketing Tool</h1>
+        <nav>
+            <ul>
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/campaigns">Campaigns</a></li>
+                <li><a href="/mailboxes">Mailboxes</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    {% block content %}{% endblock %}
+
+    <script src="https://unpkg.com/htmx.org@1.9.0"></script>
+</body>
+</html>

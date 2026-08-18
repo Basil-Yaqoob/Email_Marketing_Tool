@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<div class="alerts">
+  {% for alert in alerts %}
+  <div class="alert">{{ alert.message }}</div>
+  {% endfor %}
+</div>
+{% endblock %}
