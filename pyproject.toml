@@ -77,6 +77,10 @@ extend-select = ["BLE"]
 # quotes/dashes, so its literals are unavoidably full of the exact
 # characters the rule flags as "ambiguous".
 "app/agents/copy/quality.py" = ["E501", "RUF001"]
+# Session 14: DNS preflight fix messages are actionable instructions that
+# users will copy-paste. Keeping them on single lines improves legibility
+# even if they exceed 100 columns.
+"app/sending/dns_preflight.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
