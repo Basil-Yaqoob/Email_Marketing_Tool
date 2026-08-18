@@ -30,6 +30,10 @@ dependencies = [
     # probe can work at all. dnspython is the only serious async DNS
     # client for Python; writing a resolver is firmly out of scope.
     "dnspython>=2.7",
+    # Session 15: Jurisdiction rules are loaded from YAML, not hardcoded,
+    # so the law can change without a code release. PyYAML is the minimal,
+    # standard approach.
+    "pyyaml>=6.0",
 ]
 
 [dependency-groups]
@@ -81,6 +85,10 @@ extend-select = ["BLE"]
 # users will copy-paste. Keeping them on single lines improves legibility
 # even if they exceed 100 columns.
 "app/sending/dns_preflight.py" = ["E501"]
+# Session 15: Policy linter message strings are compliance requirements that
+# must be clear and complete; breaking them across lines reduces readability
+# for a checker that must be clear about violations.
+"app/policy/linter.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"

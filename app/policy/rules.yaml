@@ -1,0 +1,158 @@
+# Jurisdiction rules for cold email compliance
+#
+# This is NOT legal advice. The product encodes reasonable defaults based on
+# common cold-email regulations. Users remain responsible for their sending.
+#
+# Rules are evaluated per country_code (ISO-3166-1 alpha-2).
+# Unknown jurisdictions default to WARN.
+
+jurisdictions:
+  # United States — CAN-SPAM
+  US:
+    verdict: allow
+    requirements:
+      - physical_address: "Include a valid postal address in the footer"
+      - honest_headers: "Subject and From must be truthful, no deception"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+      - compliance: "Honor opt-out requests within 10 days"
+    reason: "CAN-SPAM permits bulk email with a physical address and unsubscribe"
+
+  # Canada — CASL (restrictive)
+  CA:
+    verdict: block
+    requirements:
+      - consent: "CASL requires prior express consent; cold outreach is blocked"
+      - exemption: "Narrow exemption if you have a conspicuously published business address relevant to the recipient's role"
+    reason: "CASL (Canada's Anti-Spam Law) is highly restrictive; prior consent required for cold outreach"
+
+  # United Kingdom — PECR with corporate exemption
+  UK:
+    verdict: allow
+    requirements:
+      - address: "Include a valid postal address"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+      - entity_aware: "Corporate subscribers (Ltd/PLC) exempt from consent under PECR; sole traders and partnerships require consent"
+    reason: "PECR permits email to corporate entities without prior consent; other entities require consent"
+
+  # Ireland — GDPR friendly for B2B
+  IE:
+    verdict: allow
+    requirements:
+      - address: "Include a valid postal address"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+      - b2b: "B2B legitimate interest permissible"
+    reason: "Ireland permits B2B outreach on legitimate interest basis"
+
+  # Germany — Restrictive GDPR/ePrivacy
+  DE:
+    verdict: warn
+    requirements:
+      - consent: "Prior express consent required for B2C; B2B requires legitimate interest and contact information"
+      - address: "Include a valid postal address"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+    reason: "Germany has strict ePrivacy rules; prior consent generally required except for B2B"
+
+  # France — Restrictive GDPR/ePrivacy
+  FR:
+    verdict: warn
+    requirements:
+      - consent: "Prior express consent required; B2B on legitimate interest possible but requires care"
+      - address: "Include a valid postal address"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+    reason: "France has strict ePrivacy rules; prior consent generally required"
+
+  # Italy — Restrictive GDPR/ePrivacy
+  IT:
+    verdict: warn
+    requirements:
+      - consent: "Prior express consent required; Italy is among the strictest in the EU"
+      - address: "Include a valid postal address"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+    reason: "Italy has strict ePrivacy rules; prior consent generally required"
+
+  # Spain — Moderate GDPR/ePrivacy
+  ES:
+    verdict: warn
+    requirements:
+      - consent: "Prior express consent required for B2C; B2B requires legitimate interest"
+      - address: "Include a valid postal address"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+    reason: "Spain has moderate ePrivacy rules; B2B legitimate interest possible"
+
+  # Netherlands — GDPR with some flexibility
+  NL:
+    verdict: allow
+    requirements:
+      - address: "Include a valid postal address"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+      - b2b: "B2B legitimate interest permissible"
+    reason: "Netherlands permits B2B outreach on legitimate interest basis"
+
+  # Belgium — GDPR with some flexibility
+  BE:
+    verdict: allow
+    requirements:
+      - address: "Include a valid postal address"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+      - b2b: "B2B legitimate interest permissible"
+    reason: "Belgium permits B2B outreach on legitimate interest basis"
+
+  # Austria — GDPR with some flexibility
+  AT:
+    verdict: allow
+    requirements:
+      - address: "Include a valid postal address"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+      - b2b: "B2B legitimate interest permissible"
+    reason: "Austria permits B2B outreach on legitimate interest basis"
+
+  # Australia
+  AU:
+    verdict: allow
+    requirements:
+      - address: "Include a valid Australian postal address"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+      - compliance: "Comply with Australia's Spam Act"
+    reason: "Australia's Spam Act permits email with a valid address and unsubscribe"
+
+  # Singapore
+  SG:
+    verdict: allow
+    requirements:
+      - consent: "PDPA requires consent or legitimate interest; B2B less restricted"
+      - address: "Include contact information"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+    reason: "Singapore's PDPA requires consent or legitimate interest"
+
+  # India
+  IN:
+    verdict: allow
+    requirements:
+      - address: "Include contact information"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+    reason: "India permits email with an unsubscribe mechanism"
+
+  # Brazil — LGPD (similar to GDPR)
+  BR:
+    verdict: warn
+    requirements:
+      - consent: "LGPD requires consent; B2B exempt if legitimate business contact"
+      - address: "Include contact information"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+    reason: "Brazil's LGPD requires prior consent for most communications"
+
+  # Mexico
+  MX:
+    verdict: allow
+    requirements:
+      - address: "Include a valid postal address"
+      - unsubscribe: "Provide a working unsubscribe mechanism"
+    reason: "Mexico permits email with a postal address and unsubscribe"
+
+# Default for unknown jurisdictions: warn, never silently allow
+default:
+  verdict: warn
+  requirements:
+    - address: "Include a valid postal address"
+    - unsubscribe: "Provide a working unsubscribe mechanism"
+  reason: "Unknown jurisdiction: assume conservative compliance (address + unsubscribe required, may need consent)"
