@@ -33,7 +33,7 @@ def _load_rules() -> dict[str, Any]:
 
     rules_path = Path(__file__).parent / "rules.yaml"
     with open(rules_path) as f:
-        data = yaml.safe_load(f)
+        data: dict[str, Any] = yaml.safe_load(f)
     _RULES_CACHE = data
     return data
 
@@ -67,7 +67,7 @@ async def evaluate(company: Company, session: AsyncSession) -> PolicyDecision:
 
     # Special handling for UK: check entity_type from facts
     if country_code == "UK":
-        entity_type = await _get_entity_type(company.id, session)
+        entity_type = await _get_entity_type(str(company.id), session)
         if entity_type in ("ltd", "plc"):
             # Corporate entity: use the ALLOW verdict
             pass
