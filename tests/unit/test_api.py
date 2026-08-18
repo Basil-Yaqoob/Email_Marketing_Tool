@@ -16,6 +16,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import uuid4
 
+import pytest
+
+from app.api.auth import InvalidTokenError
 from app.api.errors import exception_to_status, make_error_envelope
 from app.api.models import (
     CampaignCreate,
@@ -27,7 +30,8 @@ from app.api.models import (
     LeadResponse,
     MailboxResponse,
 )
-from app.core.errors import PolicyBlockedError
+from app.core.config import Settings
+from app.core.errors import MissingConfigError, PolicyBlockedError
 
 # ============================================================================
 # Error Handling Tests (1-7)
@@ -400,21 +404,62 @@ def test_unsubscribe_endpoint_needs_no_auth() -> None:
 # ============================================================================
 
 
-def test_other_endpoints_require_auth() -> None:
-    """All endpoints except /u/{token} require bearer token."""
-    # Missing token → 401
-    # Invalid token → 401
-    pass
+def _settings_with_token(token: str | None) -> Settings:
+    return Settings(
+        _env_file=None,  # type: ignore[call-arg]
+        database_url="postgresql+asyncpg://u:p@localhost/db",
+        redis_url="redis://localhost:6379/0",
+        secret_key="test-secret-key",  # type: ignore[arg-type]
+        api_token=token,  # type: ignore[arg-type]
+    )
 
 
-def test_auth_comparison_is_constant_time() -> None:
+async def test_other_endpoints_require_auth() -> None:
+    """All endpoints except /u/{token} require bearer token.
+
+    Regression test: verify_auth used to read `settings.api_token`, a field
+    that did not exist on Settings, so every real request would have hit an
+    AttributeError instead of a 401. Caught here because this test calls the
+    dependency directly instead of leaving it a `pass` stub.
+    """
+    from fastapi import HTTPException
+
+    from app.api.routes import verify_auth
+
+    settings = _settings_with_token("correct-token")
+
+    with pytest.raises(HTTPException) as missing:
+        await verify_auth(authorization=None, settings=settings)
+    assert missing.value.status_code == 401
+
+    with pytest.raises(HTTPException) as invalid:
+        await verify_auth(authorization="Bearer wrong-token", settings=settings)
+    assert invalid.value.status_code == 401
+
+    # Does not raise: the one case that must succeed.
+    await verify_auth(authorization="Bearer correct-token", settings=settings)
+
+
+async def test_auth_comparison_is_constant_time() -> None:
     """Bearer token compared in constant time (not fail-fast).
 
-    Prevents timing attacks that could leak the token length.
+    Prevents timing attacks that could leak the token length. Asserts the
+    real mechanism (secrets.compare_digest) rather than the docstring's
+    claim: a naive `==` short-circuits on the first mismatched byte, which
+    is exactly the timing side-channel this must not have.
     """
-    # Real implementation uses secrets.compare_digest or equivalent
-    # Stub test validates the principle
-    pass
+    import secrets
+    from unittest.mock import patch
+
+    from app.api.auth import verify_bearer_token
+
+    with patch("app.api.auth.secrets.compare_digest", wraps=secrets.compare_digest) as spy:
+        with pytest.raises(InvalidTokenError):
+            verify_bearer_token("wrong", configured="correct-token")
+        spy.assert_called_once()
+
+    with pytest.raises(MissingConfigError):
+        verify_bearer_token("anything", configured=None)
 
 
 # ============================================================================

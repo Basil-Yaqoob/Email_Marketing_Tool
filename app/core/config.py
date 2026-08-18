@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     brave_search_api_key: SecretStr | None = None
     serper_api_key: SecretStr | None = None
 
+    # Bearer token for the REST API (Session 20). None means the API is
+    # unsecured and refuses to serve, rather than silently accepting any
+    # request -- see app/api/auth.py.
+    api_token: SecretStr | None = None
+
     # --- LLM routing and budget (Session 11) ----------------------------------
     # Per-task model overrides as JSON, e.g.
     #   LLM_MODEL_OVERRIDES={"copy": "anthropic/claude-opus-5"}

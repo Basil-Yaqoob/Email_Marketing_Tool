@@ -13,6 +13,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.auth import InvalidTokenError, verify_bearer_token
 from app.api.models import (
     AlertResponse,
     AnalyticsReport,
@@ -27,6 +28,7 @@ from app.api.models import (
     SuppressionAdd,
 )
 from app.core.config import Settings
+from app.core.errors import MissingConfigError
 
 if TYPE_CHECKING:
     pass
@@ -34,22 +36,34 @@ if TYPE_CHECKING:
 router = APIRouter(prefix="/api/v1", tags=["main"])
 
 
+def _load_settings() -> Settings:
+    return Settings()
+
+
 # Dependency: Bearer token auth
-async def verify_auth(authorization: str | None = Header(None)) -> None:
+async def verify_auth(
+    authorization: str | None = Header(None),
+    settings: Settings = Depends(_load_settings),
+) -> None:
     """Verify bearer token using constant-time comparison.
 
-    The unsubscribe endpoint is public; all others require auth.
+    The unsubscribe endpoint is public; all others require auth. Delegates
+    to app.api.auth.verify_bearer_token, the same check the MCP server's
+    Streamable HTTP transport uses (Session 23) -- one mechanism, two
+    callers.
     """
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid token")
 
     token = authorization[7:]  # Strip "Bearer "
-    settings = Settings()  # Load from env
-    expected = settings.api_token
+    configured = settings.api_token.get_secret_value() if settings.api_token else None
 
-    # Constant-time comparison to prevent timing attacks
-    if len(token) != len(expected) or token != expected:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    try:
+        verify_bearer_token(token, configured=configured)
+    except MissingConfigError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except InvalidTokenError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
 
 
 # ============================================================================
