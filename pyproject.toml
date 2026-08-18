@@ -45,6 +45,8 @@ dev = [
     "respx>=0.22",
     "ruff>=0.8",
     "mypy>=1.14",
+    "types-jsonschema>=4.26.0.20260518",
+    "types-pyyaml>=6.0.12.20260815",
 ]
 
 [tool.pytest.ini_options]
@@ -90,6 +92,12 @@ extend-select = ["BLE"]
 # must be clear and complete; breaking them across lines reduces readability
 # for a checker that must be clear about violations.
 "app/policy/linter.py" = ["E501"]
+# Session 18 (pre-existing gap, closed while touching `make check` for
+# Sessions 22-23): referral-extraction regexes are unavoidably long single
+# expressions -- breaking a pattern like this mid-alternation to fit 100
+# columns makes it harder to verify against the prose it's matching, not
+# easier.
+"app/replies/referral.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
