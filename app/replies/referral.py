@@ -8,7 +8,7 @@ Extracts name, email, title, and confidence from phrasings like:
 Never invents an email. If none given, leaves it null for waterfall to find.
 """
 
-# ruff: noqa: E501, RUF001, SIM102
+# ruff: noqa: RUF001, SIM102
 
 from __future__ import annotations
 
