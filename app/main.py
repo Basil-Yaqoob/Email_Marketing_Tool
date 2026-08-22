@@ -8,11 +8,17 @@ into a single FastAPI application. Run with:
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import router as api_router
 from app.web.base import router as web_router
+
+# Resolved from this file rather than the process working directory, so the
+# app starts the same way regardless of where uvicorn was launched from.
+_STATIC_DIR = Path(__file__).resolve().parent / "web" / "static"
 
 app = FastAPI(
     title="Email Marketing Tool",
@@ -26,9 +32,7 @@ app.include_router(api_router)
 # Mount the web UI (Session 21)
 app.include_router(web_router)
 
-# Serve static assets if they exist
-try:
-    app.mount("/static", StaticFiles(directory="app/web/static"), name="static")
-except RuntimeError:
-    # static/ directory doesn't exist yet; that's fine
-    pass
+# Static assets. Mounted unconditionally: the directory is committed, so a
+# missing one is a packaging bug that should fail loudly at startup rather
+# than leave every stylesheet 404ing with no explanation (CLAUDE.md 2.1).
+app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
