@@ -11,7 +11,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -20,6 +20,9 @@ from app.db.base import BaseModel
 
 class Company(BaseModel):
     __tablename__ = "companies"
+    __table_args__ = (
+        UniqueConstraint("campaign_id", "source_place_id", name="uq_companies_campaign_place"),
+    )
 
     campaign_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("campaigns.id", ondelete="CASCADE"), nullable=False, index=True
@@ -34,9 +37,15 @@ class Company(BaseModel):
     lng: Mapped[float | None] = mapped_column(nullable=True)
     category: Mapped[str | None] = mapped_column(String, nullable=True)
     # Dedup key from discovery resolvers (Session 05) — a Google Place ID or
-    # equivalent. Unique so the same physical business isn't inserted twice
-    # by two different discovery runs.
-    source_place_id: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
+    # equivalent, so the same physical business isn't inserted twice by two
+    # different discovery runs.
+    #
+    # Unique *per campaign*, not globally: the row carries a NOT NULL
+    # campaign_id, so it is campaign-scoped data. A global unique meant the
+    # first campaign to discover a business permanently claimed it, and
+    # every later campaign targeting the same area silently lost that lead
+    # to a constraint violation -- see migration 7ed091f9c1fc.
+    source_place_id: Mapped[str | None] = mapped_column(String, nullable=True)
     rating: Mapped[float | None] = mapped_column(nullable=True)
     review_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # Full raw payload from the discovery source, kept for re-parsing without
