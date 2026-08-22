@@ -260,6 +260,10 @@ async def run_verification(
         # conclusion the ladder reached, not a failure to reach one.
         unknown=batch.count(VerifyStatus.UNKNOWN),
         catch_all=batch.count(VerifyStatus.CATCH_ALL),
+        # Reported too, or a batch of nothing but role accounts logs
+        # 'checked=1' with every count at zero and reads as if the ladder
+        # did nothing.
+        role=batch.count(VerifyStatus.ROLE),
         errors=batch.error_count,
         patterns_learned=len(batch.learned),
     )
