@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, String
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -37,5 +37,10 @@ class EmailAddress(BaseModel):
         nullable=False,
         default=VerifyStatus.UNCHECKED,
     )
-    verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    # timezone=True like every other timestamp in the schema. Without it
+    # this column was TIMESTAMP WITHOUT TIME ZONE, so writing an aware UTC
+    # datetime failed outright and a naive one would have silently recorded
+    # whatever local time the worker happened to run in -- exactly the
+    # corruption app/db/base.py's docstring warns is irrecoverable.
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_role_account: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
