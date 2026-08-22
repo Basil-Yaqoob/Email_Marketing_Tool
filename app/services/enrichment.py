@@ -20,6 +20,7 @@ rather than writing a handful of results and reporting success.
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
@@ -285,6 +286,7 @@ async def run_enrichment(
     campaign_id: uuid.UUID,
     *,
     limit: int = 200,
+    concurrency: int = 8,
     registry: ResolverRegistry | None = None,
 ) -> StageResult:
     """Crawl each company's website for a contact, and persist what is found.
@@ -308,12 +310,31 @@ async def run_enrichment(
     threshold = runtime.settings.confidence_threshold
 
     await campaigns.set_status(campaign_id, CampaignStatus.ENRICHING)
-    outcomes: list[_CompanyOutcome] = []
 
-    for company in companies:
-        outcome = await _resolve_company(company, resolvers, threshold=threshold)
-        outcomes.append(outcome)
+    # Crawl concurrently, persist sequentially.
+    #
+    # Crawling is almost entirely waiting: a dead domain costs a DNS
+    # timeout and a slow host costs the full read timeout, so a sequential
+    # loop over 65 companies takes tens of minutes of near-idle time. The
+    # per-host rate limiter and global concurrency cap in app/net/ratelimit
+    # still apply, and these are all different hosts, so nothing here
+    # hammers one server.
+    #
+    # The database half stays sequential because an AsyncSession is not
+    # safe for concurrent use -- sharing one across gathered tasks
+    # corrupts its identity map. Splitting the stage this way keeps the
+    # slow half parallel and the unsafe half serial.
+    gate = asyncio.Semaphore(concurrency)
 
+    async def _bounded(company: Company) -> _CompanyOutcome:
+        async with gate:
+            return await _resolve_company(company, resolvers, threshold=threshold)
+
+    outcomes: list[_CompanyOutcome] = list(
+        await asyncio.gather(*(_bounded(company) for company in companies))
+    )
+
+    for outcome in outcomes:
         if outcome.found_anything:
             result.found += 1
             await _persist(session, outcome)
