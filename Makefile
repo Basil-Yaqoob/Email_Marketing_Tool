@@ -1,6 +1,14 @@
-.PHONY: check lint types test test-fast live
+.PHONY: check lint types test test-fast live run run-mcp
 
 check: lint types test
+
+run:
+	docker compose up -d postgres redis
+	uv run alembic upgrade head
+	uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+run-mcp:
+	uv run python -m app.mcp.server
 
 lint:
 	uv run ruff check .

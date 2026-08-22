@@ -20,17 +20,34 @@ JavaScript to render (Session 06's crawler decides when to escalate to it).
 Skipping this step is fine until something actually calls `BrowserFetcher`;
 every other test and resolver works without it.
 
+## Running the app
+
+**One command, everything:**
+
+```bash
+make run                # Docker + migrations + web UI + API + live reload
+```
+
+Or use a shell script:
+
+```bash
+./start.sh             # On Mac/Linux or WSL
+./start.ps1            # On Windows PowerShell
+```
+
+The app will be at **http://localhost:8000** once it starts.
+
 ## Commands
 
 ```bash
+make run               # Start everything (web, API, live reload)
+make run-mcp           # Start the MCP server (for Claude Desktop / Code)
+make check             # lint + types + tests; must pass before any commit
 uv run pytest                    # all tests
 uv run pytest tests/unit -q      # fast loop, no Postgres needed
 uv run pytest --cov=app --cov-report=term-missing
 uv run ruff check . && uv run ruff format --check .
 uv run mypy app
-uv run uvicorn app.main:app --reload
-uv run arq app.workers.WorkerSettings
-make check                       # lint + types + tests; must pass before any commit
 ```
 
 ## MCP
