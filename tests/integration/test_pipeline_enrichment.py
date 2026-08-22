@@ -164,7 +164,8 @@ async def test_enrichment_writes_person_email_and_provenance(
     facts = (await db_session.execute(select(Fact))).scalars().all()
     assert {f.field for f in facts} == {"person_name", "email"}
     for fact in facts:
-        assert fact.source_url is not None and fact.source_url.startswith("https://")
+        assert fact.source_url is not None
+        assert fact.source_url.startswith("https://")
         assert fact.subject_type == SubjectType.COMPANY
         assert 0.0 <= fact.confidence <= 1.0
 
