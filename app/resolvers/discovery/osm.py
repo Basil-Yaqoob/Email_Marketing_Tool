@@ -22,7 +22,7 @@ from urllib.parse import quote
 from app.net.client import HttpClient
 from app.resolvers.base import Tier
 from app.resolvers.discovery.base import CompanyCandidate, DiscoverySpec
-from app.resolvers.discovery.category_tags import load_category_tags
+from app.resolvers.discovery.category_tags import load_category_tags, tags_for
 from app.resolvers.discovery.util import ensure_scheme, normalise_domain
 
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
@@ -77,7 +77,12 @@ class OSMResolver:
     def _build_query(self, spec: DiscoverySpec, *, lat: float, lon: float) -> str:
         clauses: list[str] = []
         for category in spec.categories:
-            for tag_set in self._category_tags.get(category, []):
+            # tags_for raises on an unmapped category rather than skipping
+            # it. Skipping meant an unrecognised word contributed no
+            # clauses, so a spec naming only unknown categories produced a
+            # syntactically valid query with an empty body -- OSM returned
+            # zero elements and the run looked successful (CLAUDE.md 2.1).
+            for tag_set in tags_for(category, self._category_tags):
                 for key, value in tag_set.items():
                     clauses.append(f'node["{key}"="{value}"](around:{spec.radius_m},{lat},{lon});')
         body = "\n  ".join(clauses)

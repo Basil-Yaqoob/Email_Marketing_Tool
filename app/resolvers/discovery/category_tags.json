@@ -1,17 +1,84 @@
 {
-  "dental clinic": [
-    {"amenity": "dentist"},
-    {"healthcare": "dentist"}
-  ],
-  "medical clinic": [
-    {"amenity": "clinic"},
-    {"amenity": "doctors"}
-  ],
-  "veterinary": [
-    {"amenity": "veterinary"}
-  ],
-  "med spa": [
-    {"shop": "beauty"},
-    {"leisure": "spa"}
-  ]
+  "_comment": "Business category -> OpenStreetMap tag sets. Synonyms are separate keys pointing at the same tags, so someone typing the ordinary word for a trade ('dentist', 'plumber') gets results without having to learn OSM's vocabulary. Lookup is case- and whitespace-insensitive; see category_tags.py. Adding a category is a one-line change here, never a code change.",
+
+  "dentist": [{"amenity": "dentist"}, {"healthcare": "dentist"}],
+  "dental clinic": [{"amenity": "dentist"}, {"healthcare": "dentist"}],
+  "dental practice": [{"amenity": "dentist"}, {"healthcare": "dentist"}],
+  "orthodontist": [{"healthcare": "dentist"}, {"healthcare:speciality": "orthodontics"}],
+
+  "doctor": [{"amenity": "doctors"}, {"healthcare": "doctor"}],
+  "medical clinic": [{"amenity": "clinic"}, {"amenity": "doctors"}],
+  "gp surgery": [{"amenity": "doctors"}, {"healthcare": "doctor"}],
+  "physiotherapist": [{"healthcare": "physiotherapist"}],
+  "chiropractor": [{"healthcare": "chiropractor"}],
+  "optician": [{"shop": "optician"}, {"healthcare": "optometrist"}],
+  "pharmacy": [{"amenity": "pharmacy"}, {"healthcare": "pharmacy"}],
+  "veterinary": [{"amenity": "veterinary"}],
+  "vet": [{"amenity": "veterinary"}],
+
+  "med spa": [{"shop": "beauty"}, {"leisure": "spa"}],
+  "spa": [{"leisure": "spa"}],
+  "beauty salon": [{"shop": "beauty"}],
+  "nail salon": [{"shop": "beauty"}],
+  "hair salon": [{"shop": "hairdresser"}],
+  "hairdresser": [{"shop": "hairdresser"}],
+  "barber": [{"shop": "hairdresser"}],
+  "tattoo studio": [{"shop": "tattoo"}],
+  "gym": [{"leisure": "fitness_centre"}],
+  "fitness studio": [{"leisure": "fitness_centre"}],
+  "yoga studio": [{"leisure": "fitness_centre"}, {"sport": "yoga"}],
+
+  "plumber": [{"craft": "plumber"}],
+  "electrician": [{"craft": "electrician"}],
+  "hvac": [{"craft": "hvac"}],
+  "roofer": [{"craft": "roofer"}],
+  "builder": [{"craft": "builder"}],
+  "carpenter": [{"craft": "carpenter"}],
+  "painter": [{"craft": "painter"}],
+  "locksmith": [{"craft": "locksmith"}, {"shop": "locksmith"}],
+  "cleaner": [{"craft": "cleaning"}],
+  "cleaning company": [{"craft": "cleaning"}],
+  "landscaper": [{"craft": "gardener"}],
+  "gardener": [{"craft": "gardener"}],
+
+  "law firm": [{"office": "lawyer"}],
+  "solicitor": [{"office": "lawyer"}],
+  "lawyer": [{"office": "lawyer"}],
+  "accountant": [{"office": "accountant"}],
+  "insurance broker": [{"office": "insurance"}],
+  "estate agent": [{"office": "estate_agent"}],
+  "real estate agency": [{"office": "estate_agent"}],
+  "architect": [{"office": "architect"}],
+  "marketing agency": [{"office": "advertising_agency"}],
+  "financial advisor": [{"office": "financial_advisor"}],
+
+  "restaurant": [{"amenity": "restaurant"}],
+  "cafe": [{"amenity": "cafe"}],
+  "coffee shop": [{"amenity": "cafe"}],
+  "bakery": [{"shop": "bakery"}],
+  "bar": [{"amenity": "bar"}, {"amenity": "pub"}],
+  "pub": [{"amenity": "pub"}],
+  "caterer": [{"craft": "caterer"}],
+  "hotel": [{"tourism": "hotel"}],
+
+  "car repair": [{"shop": "car_repair"}],
+  "garage": [{"shop": "car_repair"}],
+  "car dealer": [{"shop": "car"}],
+  "tyre shop": [{"shop": "tyres"}],
+  "car wash": [{"amenity": "car_wash"}],
+
+  "florist": [{"shop": "florist"}],
+  "jeweller": [{"shop": "jewelry"}],
+  "pet shop": [{"shop": "pet"}],
+  "bike shop": [{"shop": "bicycle"}],
+  "furniture shop": [{"shop": "furniture"}],
+
+  "driving school": [{"amenity": "driving_school"}],
+  "language school": [{"amenity": "language_school"}],
+  "childcare": [{"amenity": "childcare"}, {"amenity": "kindergarten"}],
+  "nursery": [{"amenity": "kindergarten"}],
+
+  "photographer": [{"craft": "photographer"}, {"shop": "photo"}],
+  "funeral director": [{"shop": "funeral_directors"}],
+  "travel agency": [{"shop": "travel_agency"}]
 }
