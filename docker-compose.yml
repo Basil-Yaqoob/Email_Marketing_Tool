@@ -36,6 +36,38 @@ services:
       timeout: 5s
       retries: 10
 
+  # Search, for hook mining. Free and self-hosted, which is the whole
+  # point: without a search backend `build_search_backend` raises, so hook
+  # mining cannot run — and with no hooks, no lead is eligible for any
+  # copy angle, which blocks AI copy generation entirely.
+  #
+  # SearXNG needs format=json enabled explicitly; it is off by default and
+  # the JSON API returns 403 without it, which looks like a broken backend
+  # rather than a config gap. The settings file below is generated on
+  # first start if absent, so this works from a clean checkout.
+  searxng:
+    image: searxng/searxng:latest
+    restart: unless-stopped
+    ports:
+      - "8888:8080"
+    environment:
+      # Must match the published port or SearXNG rejects requests whose
+      # Host header doesn't match what it thinks it is.
+      SEARXNG_BASE_URL: "http://localhost:8888/"
+      # Any random value; it signs SearXNG's own session cookies and is
+      # unrelated to this app's SECRET_KEY.
+      SEARXNG_SECRET: "change-me-any-random-string"
+    volumes:
+      # Mounted from the repo, not a named volume: the json format has to
+      # be enabled or the API 403s, and that must survive a clean checkout
+      # rather than being a manual step someone has to remember.
+      - ./docker/searxng/settings.yml:/etc/searxng/settings.yml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   # Stubs — get real commands in later sessions (API: Session 20, worker: Session 03+).
   web:
     build: .

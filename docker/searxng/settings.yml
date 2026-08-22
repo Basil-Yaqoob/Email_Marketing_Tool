@@ -1,0 +1,46 @@
+# SearXNG configuration for hook mining.
+#
+# Committed rather than left to the container's generated default, because
+# the one setting that matters here is off by default: `formats` must
+# include `json` or the JSON API returns 403 for every query. That looks
+# exactly like a broken search backend rather than a missing config line,
+# and it would block hook mining -- and therefore all AI copy generation,
+# since no lead is eligible for a copy angle without a hook.
+#
+# `use_default_settings: true` means everything not named here keeps
+# SearXNG's upstream defaults, so this file stays small and does not need
+# updating when they change.
+
+use_default_settings: true
+
+server:
+  # Signs SearXNG's own session cookies only. Unrelated to this app's
+  # SECRET_KEY, and not a credential for anything else -- but change it
+  # anyway if you expose this beyond localhost.
+  secret_key: "change-me-any-random-string"
+  image_proxy: false
+  limiter: false
+
+search:
+  formats:
+    - html
+    - json
+  # Hook mining wants recent news about a specific business, so safe
+  # search off (it filters legitimate business results) and a language
+  # that matches the campaign's market.
+  safe_search: 0
+  autocomplete: ""
+
+# Only the engines hook mining actually uses. A narrower set is faster and
+# far less likely to trip a rate limit than SearXNG's full default roster.
+engines:
+  - name: duckduckgo
+    disabled: false
+  - name: bing
+    disabled: false
+  - name: wikipedia
+    disabled: true
+  - name: currency
+    disabled: true
+  - name: wikidata
+    disabled: true

@@ -125,9 +125,7 @@ async def test_a_known_domain_pattern_collapses_the_guesses(
     address turns nine future guesses at that domain into one.
     """
     campaign_id, company_id = await _lead(db_session)
-    await DomainPatternRepository(db_session).learn(
-        "riverside.example", "{first}.{last}", weight=5
-    )
+    await DomainPatternRepository(db_session).learn("riverside.example", "{first}.{last}", weight=5)
 
     result = await run_email_resolution(db_session, _runtime(), campaign_id)
 
@@ -239,9 +237,7 @@ async def test_verified_addresses_are_not_rechecked(db_session: AsyncSession) ->
     """
     campaign_id, company_id = await _lead(db_session)
     emails = EmailAddressRepository(db_session)
-    await emails.add(
-        EmailAddressCreate(company_id=company_id, address="jane@riverside.example")
-    )
+    await emails.add(EmailAddressCreate(company_id=company_id, address="jane@riverside.example"))
     dns = FakeDns({"riverside.example": ["aspmx.l.google.com"]})
 
     first = await run_verification(db_session, _runtime(), campaign_id, dns=dns)

@@ -260,9 +260,7 @@ async def test_partial_success_is_not_an_error(db_session: AsyncSession) -> None
     campaign_id = await _campaign_with_companies(db_session, count=1)
     registry = build_registry(
         [
-            StubResolver(
-                name="website_person", field="person_name", raises=UpstreamError("boom")
-            ),
+            StubResolver(name="website_person", field="person_name", raises=UpstreamError("boom")),
             StubResolver(name="website_email", field="email", candidates=[_email()]),
         ]
     )
@@ -334,9 +332,7 @@ async def test_telemetry_survives_a_batch_abort(db_session: AsyncSession) -> Non
 async def test_nothing_to_enrich_is_not_a_failure(db_session: AsyncSession) -> None:
     campaign_id = await _campaign_with_companies(db_session, count=0)
 
-    result = await run_enrichment(
-        db_session, _runtime(), campaign_id, registry=build_registry([])
-    )
+    result = await run_enrichment(db_session, _runtime(), campaign_id, registry=build_registry([]))
 
     assert result.attempted == 0
     assert result.error_rate == 0.0
@@ -344,6 +340,4 @@ async def test_nothing_to_enrich_is_not_a_failure(db_session: AsyncSession) -> N
 
 async def test_missing_campaign_raises(db_session: AsyncSession) -> None:
     with pytest.raises(ValueError, match="does not exist"):
-        await run_enrichment(
-            db_session, _runtime(), uuid.uuid4(), registry=build_registry([])
-        )
+        await run_enrichment(db_session, _runtime(), uuid.uuid4(), registry=build_registry([]))
