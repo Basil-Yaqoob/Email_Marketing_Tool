@@ -54,6 +54,27 @@ class UpstreamError(ResolverError):
     """The remote source failed on its side: 5xx, timeout, malformed response."""
 
 
+class DomainNotResolvableError(ResolverError):
+    """The host does not exist in DNS — the business's website is gone.
+
+    Deliberately distinct from UpstreamError, because the two mean opposite
+    things to the batch guard. A 5xx or a timeout is a signal that
+    something on our side or the network's side may be broken, and a run
+    full of them should abort. A domain that does not resolve is a fact
+    about *that lead*: directory data goes stale, businesses close,
+    rebrand, or let a domain lapse, and nobody updates the listing.
+
+    Measured on real OpenStreetMap data: 10 of 12 Austin dental practices
+    with a `website` tag had dead domains. Counting those as errors makes
+    the guard fire on every run and the pipeline unusable; counting them as
+    misses keeps the guard meaningful for failures that actually indicate
+    a problem.
+
+    Never retried: a domain that does not resolve will not resolve on the
+    second attempt either.
+    """
+
+
 class RateLimitedError(ResolverError):
     """The remote source asked us to back off. Retry, don't treat as failure."""
 

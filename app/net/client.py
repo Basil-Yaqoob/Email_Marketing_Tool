@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import asyncio
 import random
+import socket
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from types import TracebackType
@@ -32,7 +33,11 @@ from urllib.parse import urlsplit
 
 import httpx
 
-from app.core.errors import RobotsDisallowedError, UpstreamError
+from app.core.errors import (
+    DomainNotResolvableError,
+    RobotsDisallowedError,
+    UpstreamError,
+)
 from app.core.logging import get_logger
 from app.net.cache import ResponseCache
 from app.net.ratelimit import RateLimiter
@@ -64,6 +69,24 @@ class Response:
         if "charset=" in content_type:
             return content_type.split("charset=")[-1].split(";")[0].strip()
         return "utf-8"
+
+
+def _is_dns_failure(exc: httpx.ConnectError) -> bool:
+    """Whether a connect error was actually a name-resolution failure.
+
+    httpx.ConnectError covers both "host does not exist" and "host exists
+    but refused the connection", which mean different things. The socket
+    layer distinguishes them with gaierror, so check the cause chain
+    rather than pattern-matching the message, which varies by platform
+    ("getaddrinfo failed" on Windows, "Name or service not known" on
+    Linux).
+    """
+    cause: BaseException | None = exc
+    while cause is not None:
+        if isinstance(cause, socket.gaierror):
+            return True
+        cause = cause.__cause__
+    return "getaddrinfo" in str(exc).lower() or "name or service not known" in str(exc).lower()
 
 
 class HttpClient:
@@ -191,6 +214,20 @@ class HttpClient:
                 if is_last:
                     raise UpstreamError(
                         f"timed out fetching {url} after {MAX_ATTEMPTS} attempts"
+                    ) from exc
+                await self._sleep_backoff(attempt)
+                continue
+            except httpx.ConnectError as exc:
+                # A host that doesn't resolve is a dead domain, not an
+                # upstream failure, and retrying it twice more just wastes
+                # the DNS timeout. Raised immediately as its own type so
+                # the batch guard treats it as a miss -- see
+                # DomainNotResolvableError on why that distinction matters.
+                if _is_dns_failure(exc):
+                    raise DomainNotResolvableError(f"host does not resolve for {url}") from exc
+                if is_last:
+                    raise UpstreamError(
+                        f"could not connect to {url} after {MAX_ATTEMPTS} attempts"
                     ) from exc
                 await self._sleep_backoff(attempt)
                 continue

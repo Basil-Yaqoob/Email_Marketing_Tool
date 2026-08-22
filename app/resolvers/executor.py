@@ -18,6 +18,7 @@ import time
 from dataclasses import dataclass
 from decimal import Decimal
 
+from app.core.errors import DomainNotResolvableError
 from app.core.logging import get_logger
 from app.db.models.enums import ResolverOutcome
 from app.resolvers.base import Candidate, LeadContext, Resolver, Tier
@@ -70,6 +71,31 @@ async def _run_one(resolver: Resolver, ctx: LeadContext) -> tuple[ResolverAttemp
 
     try:
         candidates = await resolver.resolve(ctx)
+    except DomainNotResolvableError as exc:
+        # A host that doesn't exist is a MISS, not an ERROR. The two feed
+        # the batch guard with opposite meanings: an ERROR says something
+        # may be systemically broken and a run full of them should abort,
+        # while a lapsed domain is a fact about that one lead. Directory
+        # data goes stale constantly (measured: 10 of 12 real Austin dental
+        # listings had dead domains), so classifying these as errors would
+        # abort essentially every run.
+        #
+        # Classified here rather than only inside each resolver so a
+        # resolver that lets it propagate still gets the right outcome.
+        latency_ms = int((time.monotonic() - start) * 1000)
+        attempt = ResolverAttempt(
+            resolver=resolver.name,
+            field=resolver.field,
+            tier=resolver.tier,
+            outcome=ResolverOutcome.MISS,
+            candidates_returned=0,
+            latency_ms=latency_ms,
+            cost=Decimal("0"),
+            # Kept for the yield report: a miss with a reason is still
+            # more useful than a bare zero.
+            error=str(exc),
+        )
+        return attempt, []
     except Exception as exc:  # noqa: BLE001 — deliberately broad: converted to
         # an ERROR telemetry row, never swallowed. One bad source must not
         # kill the lead (CLAUDE.md 2.1), but the failure is still recorded,

@@ -16,7 +16,11 @@ from __future__ import annotations
 import contextlib
 from decimal import Decimal
 
-from app.core.errors import RobotsDisallowedError, UpstreamError
+from app.core.errors import (
+    DomainNotResolvableError,
+    RobotsDisallowedError,
+    UpstreamError,
+)
 from app.net.browser import BrowserFetcher, looks_like_spa
 from app.net.client import HttpClient
 from app.resolvers.base import BaseResolver, Candidate, LeadContext, Tier
@@ -30,9 +34,10 @@ async def _sitemap_urls(ctx: LeadContext, http: HttpClient) -> list[str]:
         return []
     try:
         response = await http.get(f"{ctx.website.rstrip('/')}/sitemap.xml", respect_robots=False)
-    except (UpstreamError, RobotsDisallowedError):
-        # No sitemap, or one we can't fetch: degrade to blind path
-        # guessing rather than fail the crawl over an optional hint.
+    except (UpstreamError, RobotsDisallowedError, DomainNotResolvableError):
+        # No sitemap, one we can't fetch, or a domain that no longer
+        # exists: degrade to blind path guessing rather than fail the
+        # crawl over an optional hint.
         return []
     if response.status_code != 200:
         return []
@@ -66,6 +71,13 @@ async def _fetch_pages(
             response = await http.get(url, respect_robots=True)
         except (UpstreamError, RobotsDisallowedError):
             continue
+        except DomainNotResolvableError:
+            # The business's domain is gone. Every remaining path on this
+            # host will fail identically, so stop rather than burning a
+            # DNS timeout per guessed path. Returns no pages, which the
+            # waterfall records as a MISS -- correct, because a lapsed
+            # domain is a fact about the lead, not a failure of ours.
+            return []
         if response.status_code != 200:
             continue
 
