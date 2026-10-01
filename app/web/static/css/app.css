@@ -1,0 +1,719 @@
+/* Email Marketing Tool — design system.
+ *
+ * An instrument panel, not a marketing site. This product exists because a
+ * prototype reported success while finding nothing, so the interface's job
+ * is to never flatter the data: drop-offs render at their real size, an
+ * UNKNOWN verification reads as a conclusion rather than a warning, and a
+ * stage that found nothing says so in words.
+ *
+ * No webfont link. This is a local-first tool people run on their own
+ * machine; fetching fonts from a CDN would send their IP to a third party
+ * on every page load and break the app offline. Character comes from
+ * scale, weight and spacing instead of a downloaded face.
+ *
+ * Semantic colour (ok / warn / crit) is kept strictly separate from the
+ * accent. An accent that collided with them would make "healthy" and
+ * "needs attention" indistinguishable at a glance, which is the whole job
+ * of the status column.
+ */
+
+/* ---------------------------------------------------------------- tokens */
+
+:root {
+  /* Light palette. Neutrals carry a slight blue bias toward the accent so
+     they read as chosen rather than as default grey. */
+  --bg: #f5f7f9;
+  --surface: #ffffff;
+  --surface-sunken: #eef1f5;
+  --line: #dde3ea;
+  --line-strong: #c3ccd8;
+  --text: #10151c;
+  --text-muted: #5c6675;
+  --text-faint: #868f9e;
+
+  --accent: #17807b;
+  --accent-hover: #12615d;
+  --accent-wash: #e2f1f0;
+  --accent-text: #ffffff;
+
+  --ok: #1a7f37;
+  --ok-wash: #e6f4ea;
+  --warn: #9a6700;
+  --warn-wash: #fdf3d7;
+  --crit: #c4351f;
+  --crit-wash: #fce9e6;
+  --info: #0b5aa8;
+  --info-wash: #e4eefb;
+
+  --radius: 6px;
+  --radius-sm: 4px;
+  --shadow: 0 1px 2px rgb(16 21 28 / 6%), 0 1px 3px rgb(16 21 28 / 4%);
+
+  --step-0: 0.9375rem;
+  --step--1: 0.8125rem;
+  --step--2: 0.6875rem;
+  --step-1: 1.125rem;
+  --step-2: 1.375rem;
+  --step-3: 1.75rem;
+
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono",
+    "JetBrains Mono", Consolas, "Liberation Mono", monospace;
+
+  --rail: 232px;
+}
+
+/* Dark, for the default "system" state where nothing is stamped. Guarded so
+   an explicit light choice still wins over a dark OS. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1117;
+    --surface: #151b23;
+    --surface-sunken: #10161d;
+    --line: #232c38;
+    --line-strong: #333e4d;
+    --text: #e6eaf0;
+    --text-muted: #9aa4b2;
+    --text-faint: #6e7889;
+
+    --accent: #2da6a0;
+    --accent-hover: #3dbdb6;
+    --accent-wash: #10302f;
+    --accent-text: #06201f;
+
+    --ok: #3fb950;
+    --ok-wash: #10281a;
+    --warn: #d29922;
+    --warn-wash: #2b2313;
+    --crit: #f85149;
+    --crit-wash: #2d1618;
+    --info: #58a6ff;
+    --info-wash: #10233d;
+
+    --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 1px 3px rgb(0 0 0 / 30%);
+  }
+}
+
+/* And again for the explicit toggle, so it wins in both directions. */
+:root[data-theme="dark"] {
+  --bg: #0d1117;
+  --surface: #151b23;
+  --surface-sunken: #10161d;
+  --line: #232c38;
+  --line-strong: #333e4d;
+  --text: #e6eaf0;
+  --text-muted: #9aa4b2;
+  --text-faint: #6e7889;
+
+  --accent: #2da6a0;
+  --accent-hover: #3dbdb6;
+  --accent-wash: #10302f;
+  --accent-text: #06201f;
+
+  --ok: #3fb950;
+  --ok-wash: #10281a;
+  --warn: #d29922;
+  --warn-wash: #2b2313;
+  --crit: #f85149;
+  --crit-wash: #2d1618;
+  --info: #58a6ff;
+  --info-wash: #10233d;
+
+  --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 1px 3px rgb(0 0 0 / 30%);
+}
+
+/* ------------------------------------------------------------------ base */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  /* Explicit, from a token: a transparent body borrows whatever ground the
+     browser paints and can end up light text on light. */
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: var(--step-0);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  text-wrap: balance;
+  font-weight: 600;
+  letter-spacing: -0.011em;
+}
+
+h1 { font-size: var(--step-3); }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+
+a {
+  color: var(--accent);
+  text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  text-underline-offset: 2px;
+}
+
+a:hover { color: var(--accent-hover); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------- layout */
+
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.rail {
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.rail__brand {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.rail__brand strong {
+  font-size: var(--step-0);
+  letter-spacing: -0.02em;
+}
+
+.rail__brand span {
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  color: var(--text-faint);
+}
+
+.rail__group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rail__label {
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-faint);
+  padding: 0 8px 6px;
+}
+
+.rail a.rail__item {
+  display: block;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: var(--step--1);
+}
+
+.rail a.rail__item:hover {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+
+.rail a.rail__item[aria-current="page"] {
+  background: var(--accent-wash);
+  color: var(--accent);
+  font-weight: 550;
+}
+
+.main {
+  min-width: 0;
+  padding: 28px 32px 64px;
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.page-head__sub {
+  color: var(--text-muted);
+  font-size: var(--step--1);
+  margin-top: 4px;
+}
+
+.stack { display: flex; flex-direction: column; gap: 20px; }
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.spacer { flex: 1 1 auto; }
+
+/* ----------------------------------------------------------------- cards */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.card__title {
+  font-size: var(--step-0);
+  font-weight: 600;
+}
+
+.card__body { padding: 16px; }
+
+.grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+/* ------------------------------------------------------------ stat tiles */
+
+.stats {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.stat {
+  background: var(--surface);
+  padding: 12px 14px;
+}
+
+.stat__label {
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+}
+
+.stat__value {
+  font-family: var(--mono);
+  font-size: var(--step-2);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+.stat__note {
+  font-size: var(--step--2);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------- funnel */
+
+/* Bars are scaled against the first stage, so a collapse renders at its
+   real size. Smoothing that out would be the interface lying about the
+   data, which is the one thing this product cannot do. */
+
+.funnel {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.funnel__row {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr) 84px;
+  align-items: center;
+  gap: 12px;
+}
+
+.funnel__name {
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}
+
+.funnel__track {
+  background: var(--surface-sunken);
+  border-radius: 3px;
+  height: 20px;
+  overflow: hidden;
+}
+
+.funnel__bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  min-width: 2px;
+}
+
+.funnel__bar--empty { background: var(--line-strong); }
+
+.funnel__figures {
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.funnel__drop {
+  display: block;
+  font-size: var(--step--2);
+  color: var(--text-faint);
+}
+
+/* ----------------------------------------------------------------- pills */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--step--2);
+  font-weight: 550;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.pill--ok { background: var(--ok-wash); color: var(--ok); border-color: color-mix(in srgb, var(--ok) 25%, transparent); }
+.pill--warn { background: var(--warn-wash); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 25%, transparent); }
+.pill--crit { background: var(--crit-wash); color: var(--crit); border-color: color-mix(in srgb, var(--crit) 25%, transparent); }
+
+/* UNKNOWN is a conclusion, not a problem: Google/Microsoft accept mail for
+   every address, so no probe can settle it. Styled informational rather
+   than warning so the interface doesn't imply something went wrong. */
+.pill--info { background: var(--info-wash); color: var(--info); border-color: color-mix(in srgb, var(--info) 25%, transparent); }
+.pill--neutral { background: var(--surface-sunken); color: var(--text-muted); border-color: var(--line); }
+
+/* --------------------------------------------------------------- buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--step--1);
+  font-weight: 550;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.btn:hover { background: var(--surface-sunken); }
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.btn--primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--accent-text); }
+
+.btn--danger { border-color: color-mix(in srgb, var(--crit) 45%, transparent); color: var(--crit); }
+.btn--danger:hover { background: var(--crit-wash); }
+
+.btn[disabled], .btn[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--sm { padding: 4px 9px; font-size: var(--step--2); }
+
+/* ---------------------------------------------------------------- tables */
+
+.table-wrap {
+  /* Wide tables scroll inside their own container so the page body never
+     scrolls sideways. */
+  overflow-x: auto;
+}
+
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--step--1);
+}
+
+table.data th {
+  text-align: left;
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  font-weight: 600;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+table.data td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+table.data tbody tr:hover { background: var(--surface-sunken); }
+table.data tbody tr:last-child td { border-bottom: 0; }
+
+.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.mono { font-family: var(--mono); font-size: var(--step--1); }
+.muted { color: var(--text-muted); }
+.faint { color: var(--text-faint); }
+
+.truncate {
+  max-width: 34ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ provenance */
+
+.provenance {
+  background: var(--surface-sunken);
+}
+
+.provenance__grid {
+  display: grid;
+  gap: 10px;
+  padding: 4px 12px 12px;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr);
+  gap: 10px;
+  font-size: var(--step--1);
+}
+
+.fact__field {
+  font-size: var(--step--2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+  padding-top: 2px;
+}
+
+.fact__value { font-weight: 550; }
+
+.fact__meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: var(--step--2);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.fact__src {
+  font-family: var(--mono);
+  max-width: 52ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.confidence {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------- empty states */
+
+/* Blank is a real, common outcome here — coverage tops out well short of
+   100%. Empty states explain why and what to do next; they never imply
+   something broke. */
+
+.empty {
+  padding: 34px 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty__title {
+  color: var(--text);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.empty__body {
+  font-size: var(--step--1);
+  max-width: 56ch;
+  margin: 0 auto;
+}
+
+.empty__actions { margin-top: 16px; }
+
+/* ------------------------------------------------------------ job status */
+
+.job {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.job__bar {
+  flex: 1 1 auto;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.job__fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.job__fill--aborted { background: var(--warn); }
+.job__fill--failed { background: var(--crit); }
+
+.job__reason {
+  font-size: var(--step--1);
+  color: var(--text-muted);
+  padding: 8px 14px 0;
+  font-family: var(--mono);
+}
+
+/* ---------------------------------------------------------------- forms */
+
+label.field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.field__label {
+  display: block;
+  font-size: var(--step--1);
+  font-weight: 550;
+  margin-bottom: 4px;
+}
+
+.field__hint {
+  display: block;
+  font-size: var(--step--2);
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--step--1);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  outline-offset: 0;
+}
+
+/* --------------------------------------------------------------- health */
+
+.health {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.health__score {
+  font-family: var(--mono);
+  font-size: var(--step-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.dns {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+/* ---------------------------------------------------------------- misc */
+
+.notice {
+  padding: 11px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-sunken);
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}
+
+.notice--info {
+  background: var(--info-wash);
+  border-color: color-mix(in srgb, var(--info) 25%, transparent);
+  color: var(--text);
+}
+
+.htmx-indicator { opacity: 0; transition: opacity 0.15s ease; }
+.htmx-request .htmx-indicator { opacity: 1; }
+
+@media (max-width: 860px) {
+  .shell { grid-template-columns: 1fr; }
+  .rail { border-right: 0; border-bottom: 1px solid var(--line); }
+  .main { padding: 20px 16px 48px; }
+}
